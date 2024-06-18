@@ -4,39 +4,101 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Home Page</title>
+    <!-- Include Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap');
+
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Montserrat', sans-serif;
             margin: 0;
             padding: 0;
+            background-color: #f4f4f4;
         }
         header {
-            background-color: #4CAF50;
+            background: linear-gradient(90deg, #1CB5E0 0%, #000851 100%);
             color: white;
-            padding: 15px 0;
+            padding: 20px 0;
             text-align: center;
+            position: relative;
+        }
+        header h1 {
+            margin: 0;
+        }
+        .logo {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 2rem;
+        }
+        .logo i {
+            color: white;
         }
         nav {
             display: flex;
             justify-content: center;
             background-color: #333;
+            padding: 10px 0;
         }
         nav a {
             color: white;
             padding: 14px 20px;
             text-decoration: none;
             text-align: center;
+            transition: background-color 0.3s ease, color 0.3s ease;
+            display: flex;
+            align-items: center;
+        }
+        nav a i {
+            margin-right: 8px;
         }
         nav a:hover {
-            background-color: #ddd;
-            color: black;
+            background-color: #1CB5E0;
+            color: white;
         }
         main {
             padding: 20px;
-            background-color: #f4f4f4;
+            margin-top: 20px;
         }
-        section {
-            margin-bottom: 20px;
+        .session {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            border-bottom: 2px solid #1CB5E0;
+            transition: transform 0.3s ease;
+        }
+        .session:hover {
+            transform: scale(1.05);
+        }
+        .session-header {
+            background-color: #1CB5E0;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            color: white;
+        }
+        .session-header h2 {
+            margin: 0;
+            flex-grow: 1;
+        }
+        .session-header .icon {
+            margin-right: 15px;
+            font-size: 1.8em;
+        }
+        .session-details {
+            display: flex;
+            flex-direction: column;
+            padding: 10px 0;
+        }
+        .detail {
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
         }
         footer {
             background-color: #333;
@@ -51,34 +113,59 @@
 </head>
 <body>
     <header>
-        <h1>Welcome to Our Website</h1>
+        
+        <h1>Track Me Run</h1>
     </header>
     <nav>
-        <a href="{{ url_for('home') }}">Home</a>
-        <a href="{{ url_for('viewprofile') }}">View Profile</a>
-        <a href="{{ url_for('logout') }}">Logout</a>
-        <a href="{{ url_for('changepass') }}">Change Password</a>
+        <a href="{{ url_for('home') }}"><i class="fas fa-home"></i>Home</a>
+        <a href="{{ url_for('viewprofile') }}"><i class="fas fa-user"></i>View Profile</a>
+        <a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i>Logout</a>
+        <a href="{{ url_for('changepass') }}"><i class="fas fa-key"></i>Change Password</a>
     </nav>
     <main>
-        <section id="home">
-            <h2>Home</h2>
-            <p>This is the home section. Welcome to our website. We offer a variety of services to help you achieve your goals.</p>
-        </section>
-        <section id="about">
-            <h2>About Us</h2>
-            <p>Learn more about our company, our values, and our mission to serve our customers.</p>
-        </section>
-        <section id="services">
-            <h2>Services</h2>
-            <p>Discover the wide range of services we offer to meet your needs. We are here to help you succeed.</p>
-        </section>
-        <section id="contact">
-            <h2>Contact Us</h2>
-            <p>Get in touch with us for more information about our services or to schedule a consultation.</p>
-        </section>
+        {% for session in sessions %}
+        <div class="session">
+            <div class="session-header">
+                <i class="fas fa-running icon"></i>
+                <h2>Running Session {{ loop.index }}</h2>
+                <div class="date-time">
+                    <div>Datetime: {{ session.datetime }}</div>
+                </div>
+            </div>
+            <div class="session-details">
+                <div class="detail">
+                    <span>Distance:</span>
+                    <span id="distance">{{ session.distance }} m</span>
+                </div>
+                <div class="detail">
+                    <span>Duration:</span>
+                    <span id="duration">{{ session.duration }} s</span>
+                </div>
+                <div class="detail">
+                    <span>Average Velocity:</span>
+                    <span id="avg">{{ session.avg }} m/s</span>
+                </div>
+                <div class="detail">
+                    <span>Maximum Velocity:</span>
+                    <span id="max">{{ session.max }} m/s</span>
+                </div>
+                <div class="detail">
+                    <span>Calories Burned:</span>
+                    <span id="calories">{{ session.calories }} cal</span>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
     </main>
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
     <footer>
-        <p>&copy; 2024 Your Company Name. All rights reserved.</p>
+        <p>&copy; 2024 Track Me Run. All rights reserved.</p>
     </footer>
 </body>
 </html>
