@@ -370,7 +370,6 @@ def startsession():
 @app.route("/finishsession")
 @login_required
 def finishsession():
-
     return  
 @app.route("/logout")
 def logout():
