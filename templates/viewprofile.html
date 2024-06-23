@@ -1,169 +1,270 @@
-<!DOCTYPE html>
+{% extends "base.html" %}
+{% block title %}View Profile{% endblock %}
+
+{% block css %}
+<style>
+	.container {
+		margin: auto;
+		/* margin-top: 20px; */
+		max-width: 600px;
+		background-color: white;
+		padding: 20px;
+		border-radius: 8px;
+		box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+		/* margin-top: 150px; */
+	}
+
+	.profile-info {
+		margin: 20px 0;
+	}
+
+	.profile-info label {
+		display: block;
+		font-weight: bold;
+		margin-bottom: 5px;
+		color: #333;
+	}
+
+	.profile-info p {
+		margin: 0 0 15px;
+		padding: 10px;
+		background-color: #f8f8f8;
+		border: 1px solid #ccc;
+		border-radius: 4px;
+	}
+
+	.update-btn {
+		display: block;
+		width: 97%;
+		padding: 10px;
+		background-color: #1CB5E0;
+		color: white;
+		border: none;
+		border-radius: 5px;
+		font-size: 1.1em;
+		cursor: pointer;
+		text-align: center;
+		text-decoration: none;
+		transition: background-color 0.3s ease;
+	}
+
+	.update-btn:hover {
+		background-color: #000851;
+	}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+	<h1 class="text-center">User Profile</h1>
+	<div class="profile-info">
+		<label for="name">Name:</label>
+		<p id="name">{{ name }}</p>
+
+		<label for="weight">Weight (kg):</label>
+		<p id="weight">{{ weight }}</p>
+
+		<label for="height">Height (cm):</label>
+		<p id="height">{{ height }}</p>
+
+		<label for="age">Age:</label>
+		<p id="age">{{ age }}</p>
+
+		<label for="gender">Gender:</label>
+		<p id="gender">{{ gender }}</p>
+
+		<label for="bmr">BMR (kcal/day):</label>
+		<p id="bmr">{{ bmr }}</p>
+		<br>
+		<a href="{{ url_for('updateprofile') }}" class="update-btn">Update Profile</a>
+	</div>
+</div>
+{% endblock %}
+
+<!-- <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>View Profile</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap');
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>View Profile</title>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+	<style>
+		@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap');
 
-        body {
-            font-family: 'Montserrat', sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f4;
-        }
-        header {
-            background: linear-gradient(90deg, #1CB5E0 0%, #000851 100%);
-            color: white;
-            padding: 20px 0;
-            text-align: center;
-            position: fixed;
-            top: 0;
-            width: 100%;
-        }
-        header h1 {
-            margin: 0;
-        }
-        .logo {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            font-size: 2rem;
-        }
-        .logo i {
-            color: white;
-        }
-        nav {
-            margin-top: 19px;
-            display: flex;
-            justify-content: center;
-            background-color: #333;
-            padding: 10px 0;
-            position: fixed;
-            top: 60px;
-            width: 100%;
-        }
-        nav a {
-            color: white;
-            padding: 14px 20px;
-            text-decoration: none;
-            text-align: center;
-            transition: background-color 0.3s ease, color 0.3s ease;
-            display: flex;
-            align-items: center;
-        }
-        nav a i {
-            margin-right: 8px;
-        }
-        nav a:hover {
-            background-color: #1CB5E0;
-            color: white;
-        }
-        .container {
-            margin: auto;
-            margin-top:20px;
-            max-width: 600px;
-            background-color: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 20px rgba(0,0,0,0.1);
-            margin-top: 150px;
-        }
-        .profile-info {
-            margin: 20px 0;
-        }
-        .profile-info label {
-            display: block;
-            font-weight: bold;
-            margin-bottom: 5px;
-            color: #333;
-        }
-        .profile-info p {
-            margin: 0 0 15px;
-            padding: 10px;
-            background-color: #f8f8f8;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-        .update-btn {
-            display: block;
-            width: 97%;
-            padding: 10px;
-            background-color: #1CB5E0;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            font-size: 1.1em;
-            cursor: pointer;
-            text-align: center;
-            text-decoration: none;
-            transition: background-color 0.3s ease;
-        }
-        .update-btn:hover {
-            background-color: #000851;
-        }
-        footer {
-            background-color: #333;
-            color: white;
-            text-align: center;
-            padding: 10px 0;
-            position: fixed;
-            width: 100%;
-            bottom: 0;
-        }
-    </style>
+		body {
+			font-family: 'Montserrat', sans-serif;
+			margin: 0;
+			padding: 0;
+			background-color: #f4f4f4;
+		}
+
+		header {
+			background: linear-gradient(90deg, #1CB5E0 0%, #000851 100%);
+			color: white;
+			padding: 20px 0;
+			text-align: center;
+			position: fixed;
+			top: 0;
+			width: 100%;
+		}
+
+		header h1 {
+			margin: 0;
+		}
+
+		.logo {
+			position: absolute;
+			top: 10px;
+			left: 10px;
+			font-size: 2rem;
+		}
+
+		.logo i {
+			color: white;
+		}
+
+		nav {
+			margin-top: 19px;
+			display: flex;
+			justify-content: center;
+			background-color: #333;
+			padding: 10px 0;
+			position: fixed;
+			top: 60px;
+			width: 100%;
+		}
+
+		nav a {
+			color: white;
+			padding: 14px 20px;
+			text-decoration: none;
+			text-align: center;
+			transition: background-color 0.3s ease, color 0.3s ease;
+			display: flex;
+			align-items: center;
+		}
+
+		nav a i {
+			margin-right: 8px;
+		}
+
+		nav a:hover {
+			background-color: #1CB5E0;
+			color: white;
+		}
+
+		.container {
+			margin: auto;
+			margin-top: 20px;
+			max-width: 600px;
+			background-color: white;
+			padding: 20px;
+			border-radius: 8px;
+			box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+			margin-top: 150px;
+		}
+
+		.profile-info {
+			margin: 20px 0;
+		}
+
+		.profile-info label {
+			display: block;
+			font-weight: bold;
+			margin-bottom: 5px;
+			color: #333;
+		}
+
+		.profile-info p {
+			margin: 0 0 15px;
+			padding: 10px;
+			background-color: #f8f8f8;
+			border: 1px solid #ccc;
+			border-radius: 4px;
+		}
+
+		.update-btn {
+			display: block;
+			width: 97%;
+			padding: 10px;
+			background-color: #1CB5E0;
+			color: white;
+			border: none;
+			border-radius: 5px;
+			font-size: 1.1em;
+			cursor: pointer;
+			text-align: center;
+			text-decoration: none;
+			transition: background-color 0.3s ease;
+		}
+
+		.update-btn:hover {
+			background-color: #000851;
+		}
+
+		footer {
+			background-color: #333;
+			color: white;
+			text-align: center;
+			padding: 10px 0;
+			position: fixed;
+			width: 100%;
+			bottom: 0;
+		}
+	</style>
 </head>
+
 <body>
-    <header>
-        <h1>Track Me Run</h1>
-    </header>
-    <nav>
-        <a href="{{ url_for('home') }}"><i class="fas fa-home"></i>Home</a>
-        <a href="{{ url_for('viewprofile') }}"><i class="fas fa-user"></i>View Profile</a>
-        <a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i>Logout</a>
-        <a href="{{ url_for('changepass') }}"><i class="fas fa-key"></i>Change Password</a>
-    </nav>
-    <br>
-    <br>
-    <br>
+	<header>
+		<h1>Track Me Run</h1>
+	</header>
+	<nav>
+		<a href="{{ url_for('home') }}"><i class="fas fa-home"></i>Home</a>
+		<a href="{{ url_for('viewprofile') }}"><i class="fas fa-user"></i>View Profile</a>
+		<a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i>Logout</a>
+		<a href="{{ url_for('changepass') }}"><i class="fas fa-key"></i>Change Password</a>
+	</nav>
+	<br>
+	<br>
+	<br>
 
-    <div class="container">
-        <h1 class="text-center">User Profile</h1>
-        <div class="profile-info">
-            <label for="name">Name:</label>
-            <p id="name">{{ name }}</p>
+	<div class="container">
+		<h1 class="text-center">User Profile</h1>
+		<div class="profile-info">
+			<label for="name">Name:</label>
+			<p id="name">{{ name }}</p>
 
-            <label for="weight">Weight (kg):</label>
-            <p id="weight">{{ weight }}</p>
+			<label for="weight">Weight (kg):</label>
+			<p id="weight">{{ weight }}</p>
 
-            <label for="height">Height (cm):</label>
-            <p id="height">{{ height }}</p>
+			<label for="height">Height (cm):</label>
+			<p id="height">{{ height }}</p>
 
-            <label for="age">Age:</label>
-            <p id="age">{{ age }}</p>
+			<label for="age">Age:</label>
+			<p id="age">{{ age }}</p>
 
-            <label for="gender">Gender:</label>
-            <p id="gender">{{ gender }}</p>
+			<label for="gender">Gender:</label>
+			<p id="gender">{{ gender }}</p>
 
-            <label for="bmr">BMR (kcal/day):</label>
-            <p id="bmr">{{ bmr }}</p>
-            <br>
-            <a href="{{ url_for('updateprofile') }}" class="update-btn">Update Profile</a>
-        </div>
-    </div>
-    <br>
-    <br>
-    <br>
-    <br>
-    <br>
-    <br>
-    <br>
-    <br>
-    <br>
-    <footer>
-        <p>&copy; 2024 Track Me Run. All rights reserved.</p>
-    </footer>
+			<label for="bmr">BMR (kcal/day):</label>
+			<p id="bmr">{{ bmr }}</p>
+			<br>
+			<a href="{{ url_for('updateprofile') }}" class="update-btn">Update Profile</a>
+		</div>
+	</div>
+	<br>
+	<br>
+	<br>
+	<br>
+	<br>
+	<br>
+	<br>
+	<br>
+	<br>
+	<footer>
+		<p>&copy; 2024 Track Me Run. All rights reserved.</p>
+	</footer>
 </body>
-</html>
+
+</html> -->
