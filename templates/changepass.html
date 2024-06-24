@@ -6,11 +6,16 @@
 <style>
 	.container {
 		margin: auto;
-		max-width: 600px;
+		max-width: 800px;
 		background-color: white;
-		padding: 20px;
+		padding: 40px;
 		border-radius: 8px;
 		box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+	}
+
+	.container h2 {
+		margin: 0;
+		margin-bottom: 20px;
 	}
 
 	.btn-primary {
@@ -29,6 +34,15 @@
 		background-color: #000851;
 	}
 </style>
+{% endblock %}
+
+{% block navbar%}
+<nav>
+	<a href="{{ url_for('home') }}"><i class="fas fa-home"></i>Home</a>
+	<a href="{{ url_for('viewprofile') }}"><i class="fas fa-user"></i>My Profile</a>
+	<a class="active" href="{{ url_for('changepass') }}"><i class="fas fa-key"></i>Change Password</a>
+	<a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i>Logout</a>
+</nav>
 {% endblock %}
 
 {% block content %}

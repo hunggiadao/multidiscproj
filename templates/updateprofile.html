@@ -6,13 +6,16 @@
 <style>
 	.container {
 		margin: auto;
-		/* margin-top: 20px; */
-		max-width: 600px;
+		max-width: 800px;
 		background-color: white;
-		padding: 20px;
+		padding: 40px;
 		border-radius: 8px;
 		box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-		/* margin-top: 150px; */
+	}
+
+	.container h2 {
+		margin: 0;
+		margin-bottom: 20px;
 	}
 
 	/* form {
@@ -72,24 +75,33 @@
 </style>
 {% endblock %}
 
+{% block navbar%}
+<nav>
+	<a href="{{ url_for('home') }}"><i class="fas fa-home"></i>Home</a>
+	<a class="active" href="{{ url_for('viewprofile') }}"><i class="fas fa-user"></i>My Profile</a>
+	<a href="{{ url_for('changepass') }}"><i class="fas fa-key"></i>Change Password</a>
+	<a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i>Logout</a>
+</nav>
+{% endblock %}
+
 {% block content %}
 <div class="container">
 	<h2 class="text-center">Update Profile</h2>
 	<form action="{{ url_for('updateprofile') }}" method="POST">
 		<div class="form-group">
-			<label for="name">Name:</label>
+			<label for="name">Name</label>
 			<input type="text" class="form-control" id="name" name="name">
 		</div>
 		<div class="form-group">
-			<label for="weight">Weight (kg):</label>
+			<label for="weight">Weight (kg)</label>
 			<input type="number" class="form-control" id="weight" name="weight" step="0.1">
 		</div>
 		<div class="form-group">
-			<label for="height">Height (cm):</label>
+			<label for="height">Height (cm)</label>
 			<input type="number" class="form-control" id="height" name="height" step="0.1">
 		</div>
 		<div class="form-group">
-			<label for="age">Age:</label>
+			<label for="age">Age</label>
 			<input type="number" class="form-control" id="age" name="age">
 		</div>
 		<div class="form-group gender-options">
