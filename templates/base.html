@@ -10,53 +10,48 @@
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 	<style>
 		@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap');
+		@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&display=swap');
 
 		html {
 			height: 100%;
 		}
 
 		body {
+			/* font-family: 'Montserrat', sans-serif; */
 			font-family: 'Montserrat', sans-serif;
 			margin: 0;
 			padding: 0;
 			background-color: #f4f4f4;
-			height: 100%;
-			/* display: flex */
+			min-height: 100vh;
+			display: flex;
+			flex-direction: column;
+			overflow: auto;
 		}
 
 		header {
 			background: linear-gradient(90deg, #1CB5E0 0%, #000851 100%);
 			color: white;
-			padding: 20px 0;
+			padding: 20px;
 			text-align: center;
 			position: relative;
 		}
 
 		header h1 {
 			margin: 0;
-		}
-
-		.logo {
-			position: absolute;
-			top: 10px;
-			left: 10px;
-			font-size: 2rem;
-		}
-
-		.logo i {
-			color: white;
+			font-family: 'Orbitron';
+			font-weight: 900;
 		}
 
 		nav {
 			display: flex;
 			justify-content: center;
 			background-color: #333;
-			padding: 10px 0;
+			width: 100%;
 		}
 
 		nav a {
 			color: white;
-			padding: 14px 20px;
+			padding: 10px 20px;
 			text-decoration: none;
 			text-align: center;
 			transition: background-color 0.3s ease, color 0.3s ease;
@@ -68,14 +63,17 @@
 			margin-right: 8px;
 		}
 
-		nav a:hover {
-			background-color: #1CB5E0;
-			color: white;
+		nav a:hover, nav a.active {
+			background-color:#f4f4f4;
+			color:#1CB5E0;
 		}
 
 		main {
 			padding: 20px;
-			margin-top: 20px;
+			margin: 20px 0;
+			position: relative;
+			height: 100%;
+			flex-grow: 1;
 		}
 
 		form {
@@ -90,7 +88,6 @@
 		}
 
 		.form-group label {
-			margin-bottom: 5px;
 			font-weight: bold;
 			color: #333;
 		}
@@ -101,6 +98,7 @@
 			border: 1px solid #ccc;
 			border-radius: 5px;
 			transition: border-color 0.3s ease;
+			margin-top: 5px;
 		}
 
 		.form-control:focus {
@@ -118,10 +116,9 @@
 			background-color: #333;
 			color: white;
 			text-align: center;
-			padding: 10px 0;
 			width: 100%;
-			position: relative;
 			bottom: 0;
+			line-height: 5px;
 		}
 	</style>
 	{% block css %}{% endblock %}
@@ -129,28 +126,17 @@
 
 <body>
 	<header>
-
-		<h1>Track Me Run</h1>
+		<h1>TRACK ME RUN</h1>
 	</header>
-	<nav>
-		<a href="{{ url_for('home') }}"><i class="fas fa-home"></i>Home</a>
-		<a href="{{ url_for('viewprofile') }}"><i class="fas fa-user"></i>View Profile</a>
-		<a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i>Logout</a>
-		<a href="{{ url_for('changepass') }}"><i class="fas fa-key"></i>Change Password</a>
-	</nav>
+	
+	{% block navbar %}{% endblock %}
+
 	<main>
 		{% block content%}{% endblock %}
 	</main>
-	<!-- <br>
-    <br>
-    <br>
-    <br>
-    <br>
-    <br>
-    <br> -->
+
 	<footer>
 		<p>&copy; 2024 Track Me Run. All rights reserved.</p>
 	</footer>
 </body>
-
 </html>

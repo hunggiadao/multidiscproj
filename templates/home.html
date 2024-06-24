@@ -54,6 +54,15 @@
 </style>
 {% endblock %}
 
+{% block navbar%}
+<nav>
+	<a class="active" href="{{ url_for('home') }}"><i class="fas fa-home"></i>Home</a>
+	<a href="{{ url_for('viewprofile') }}"><i class="fas fa-user"></i>My Profile</a>
+	<a href="{{ url_for('changepass') }}"><i class="fas fa-key"></i>Change Password</a>
+	<a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i>Logout</a>
+</nav>
+{% endblock %}
+
 {% block content %}
 {% for session in sessions %}
 <div class="session">
