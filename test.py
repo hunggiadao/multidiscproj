@@ -22,10 +22,6 @@ token = oauth.fetch_token(
 
 # store access token in access_token variable
 access_token = token.get("access_token")
-Multidisciplinary_Project = Flask(__name__)
-@Multidisciplinary_Project.route("/")
-def hello_world():
-    return "<p>Hello,World!</p>"
 # configure and instance the API client with our access_token
 client_config = iot.Configuration(host="https://api2.arduino.cc/iot")
 client_config.access_token = access_token

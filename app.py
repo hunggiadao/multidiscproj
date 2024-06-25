@@ -98,26 +98,27 @@ def login_required(f):
 # def hash_password(password):
 #     return hashlib.sha256(password.encode()).hexdigest()
 
+running_sessions = [
+    {'datetime': '18/06/2024', 'duration': '23', 'distance': 5,
+     'avg': '1.2', 'max': '2', 'calories': 300},
+    {'datetime': '18/06/2024', 'duration': '32432',
+     'distance': 10, 'avg': '3.4', 'max': '4', 'calories': 600},
+    {'datetime': '18/06/2024', 'duration': '485935',
+     'distance': 7, 'avg': '2.1', 'max': '3', 'calories': 450},
+    {'datetime': '18/06/2024', 'duration': '485935',
+     'distance': 7, 'avg': '2.1', 'max': '3', 'calories': 450},
+    {'datetime': '18/06/2024', 'duration': '485935',
+     'distance': 7, 'avg': '2.1', 'max': '3', 'calories': 450},
+    {'datetime': '18/06/2024', 'duration': '485935',
+     'distance': 7, 'avg': '2.1', 'max': '3', 'calories': 450},
+    {'datetime': '18/06/2024', 'duration': '485935',
+     'distance': 7, 'avg': '2.1', 'max': '3', 'calories': 450},
+]
+
 
 @app.route("/")
 @login_required
 def home():
-    running_sessions = [
-        {'datetime': '18/06/2024', 'duration': '23', 'distance': 5,
-            'avg': '1.2', 'max': '2', 'calories': 300},
-        {'datetime': '18/06/2024', 'duration': '32432',
-            'distance': 10, 'avg': '3.4', 'max': '4', 'calories': 600},
-        {'datetime': '18/06/2024', 'duration': '485935',
-            'distance': 7, 'avg': '2.1', 'max': '3', 'calories': 450},
-        {'datetime': '18/06/2024', 'duration': '485935',
-            'distance': 7, 'avg': '2.1', 'max': '3', 'calories': 450},
-        {'datetime': '18/06/2024', 'duration': '485935',
-            'distance': 7, 'avg': '2.1', 'max': '3', 'calories': 450},
-        {'datetime': '18/06/2024', 'duration': '485935',
-            'distance': 7, 'avg': '2.1', 'max': '3', 'calories': 450},
-        {'datetime': '18/06/2024', 'duration': '485935',
-            'distance': 7, 'avg': '2.1', 'max': '3', 'calories': 450},
-    ]
 
     return render_template("home.html", sessions=running_sessions)
 
@@ -306,7 +307,6 @@ def startsession():
 
     # store access token in access_token variable
     access_token = token.get("access_token")
-
     # configure and instance the API client with our access_token
     client_config = iot.Configuration(host="https://api2.arduino.cc/iot")
     client_config.access_token = access_token
@@ -326,7 +326,7 @@ def startsession():
     looping = True  # whether the program continuously fetches data in a loop
     minutes_ago = 1  # how far back in time should the program fetch data, more minutes means longer fetch time
     # how many seconds should the program wait before fetching again
-    sleep_duration = float(0.5)
+    sleep_duration = float(5)
 
     # init data for Properties API interactions
     # api = iot.PropertiesV2Api(client)
@@ -338,14 +338,34 @@ def startsession():
     acc_linear_id = "16d6ec74-c599-4386-b3a2-ec71fcf8e5b5"
 
     property_id = gps_id
+    # final output
+    max_velocity = 0
+    average_velocity = 0
+    total_distance = 0
+    total_calorie_burnt = 0
+    coordinates = []
+    velocity = []
+    first_fetch = True
     interval_length = 0
-
+    previous_time = 0
+    duration = 0
     while (True):
         try:
             now_time = datetime.now()
-            # print(f"Now:\t{now_time}")
+            if first_fetch == False:
+                if now_time.second < previous_time.second:
+                    interval_length = now_time.second + 60 + \
+                        (now_time.microsecond/1000000) - previous_time.second - \
+                        (previous_time.microsecond/1000000)
+                else:
+                    interval_length = now_time.second + \
+                        (now_time.microsecond/1000000) - previous_time.second - \
+                        (previous_time.microsecond/1000000)
+                # interval length, not finished, datetime type issue
+            previous_time = now_time
+            print(f"Now:\t{now_time}")
             prev_time = now_time + timedelta(minutes=-minutes_ago)
-            # print(f"{minutes_ago} mins ago:\t{prev_time}")
+            print(f"{minutes_ago} mins ago:\t{prev_time}")
             formatted_month = ('00' + str(prev_time.month))[-2:]
             formatted_date = ('00' + str(prev_time.day))[-2:]
             formatted_hour = ('00' + str(prev_time.hour - 7))[-2:]
@@ -353,7 +373,7 @@ def startsession():
             formatted_second = ('00' + str(prev_time.second))[-2:]
             formatted_time = str(prev_time.year) + '-' + formatted_month + '-' + formatted_date + \
                 'T' + formatted_hour + ':' + formatted_minute + ':' + formatted_second + 'Z'
-            # print(f"Formatted:\t{formatted_time}")
+            print(f"Formatted:\t{formatted_time}")
 
             # resp = api.properties_v2_list(thing_id)
             resp = api.properties_v2_show(thing_id, gps_id)
@@ -368,9 +388,9 @@ def startsession():
             # else:
             # 	print(f"No records in last {minutes_ago} minutes")
             # print(resp)
-            # print(f"{resp.value_updated_at}\tGyroscope_X: {resp.last_value}")
+            print(f"{resp.value_updated_at}\tGyroscope_X: {resp.last_value}")
             coordinates.append(
-                (resp._last_value['lat'], resp._last_value['lon']))
+                tuple((resp._last_value['lat'], resp._last_value['lon'])))
             if first_fetch == True:
                 first_fetch = False
             else:
@@ -378,14 +398,31 @@ def startsession():
                     coordinates)-2][1], coordinates[len(coordinates)-1][0], coordinates[len(coordinates)-1][0])
                 total_distance += distance
                 current_velocity = distance / interval_length
+                duration += interval_length
                 max_velocity = max(max_velocity, current_velocity)
                 velocity.append(current_velocity)
-
+                print(current_velocity)
+                print(distance)
+                print(interval_length)
         except ApiException as e:
-            return render_template("apology.html", "something went wrong with your data")
-
-        if coordinates[-1] == coordinates[-2] and coordinates[-2] == coordinates[-3]:
-            return redirect("/finishsession")
+            print("Got an exception: {}".format(e))
+        if len(velocity) >= 3:
+            if coordinates[-1] == coordinates[-2] and coordinates[-2] == coordinates[-3]:
+                summ = 0
+                for i in range(0, len(velocity)-2):
+                    summ += i
+                average_velocity = summ / len(velocity)
+                session_dict = {
+                    'datetime': "25/06/2024",
+                    'duration': duration - 15,
+                    'distance': total_distance,
+                    'avg': average_velocity,
+                    'max': max_velocity,
+                    'calories': 1000
+                }
+                running_sessions.append(session_dict)
+                return redirect("/")
+        print()
         time.sleep(sleep_duration)
 
 
