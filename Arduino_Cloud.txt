@@ -1,0 +1,4 @@
+Arduino Cloud:
+Client ID: 967VT2YXvzhTjgPr7YqJnwpx4gv9LPj3
+Client secret: IzJKMUUnl09D1aTZQoYWxu31PpmKH1JLPPWVMBliDCet0aClF0MWXF5hGnuZH5c7
+iPhone Thing ID: ac1657d6-218a-492e-97f3-9630c3b988e2

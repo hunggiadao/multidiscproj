@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block title %}Home Page{% endblock %}
+
+
+{% block css %}
+<style>
+	.session {
+		max-width: 800px;
+		margin: auto;
+		margin-bottom: 20px;
+		padding: 20px;
+		background-color: white;
+		border-radius: 8px;
+		box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+		border-bottom: 2px solid #1CB5E0;
+		transition: transform 0.3s ease;
+	}
+
+	.session:hover {
+		transform: scale(1.05);
+	}
+
+	.session-header {
+		background-color: #1CB5E0;
+		padding: 15px;
+		border-radius: 8px;
+		margin-bottom: 10px;
+		display: flex;
+		align-items: center;
+		color: white;
+	}
+
+	.session-header h2 {
+		margin: 0;
+		flex-grow: 1;
+	}
+
+	.session-header .icon {
+		margin-right: 15px;
+		font-size: 1.8em;
+	}
+
+	.session-details {
+		display: flex;
+		flex-direction: column;
+		padding: 10px 0;
+	}
+
+	.detail {
+		margin-bottom: 10px;
+		display: flex;
+		justify-content: space-between;
+	}
+</style>
+{% endblock %}
+
+{% block navbar%}
+<nav>
+	<a class="active" href="{{ url_for('home') }}"><i class="fas fa-home"></i>Home</a>
+	<a href="{{ url_for('viewprofile') }}"><i class="fas fa-user"></i>My Profile</a>
+	<a href="{{ url_for('changepass') }}"><i class="fas fa-key"></i>Change Password</a>
+	<a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i>Logout</a>
+</nav>
+{% endblock %}
+
+{% block content %}
+{% for session in sessions %}
+<div class="session">
+	<div class="session-header">
+		<i class="fas fa-running icon"></i>
+		<h2>Running Session {{ loop.index }}</h2>
+		<div class="date-time">
+			<div>Datetime: {{ session.datetime }}</div>
+		</div>
+	</div>
+	<div class="session-details">
+		<div class="detail">
+			<span>Distance:</span>
+			<span id="distance">{{ session.distance }} m</span>
+		</div>
+		<div class="detail">
+			<span>Duration:</span>
+			<span id="duration">{{ session.duration }} s</span>
+		</div>
+		<div class="detail">
+			<span>Average Velocity:</span>
+			<span id="avg">{{ session.avg }} m/s</span>
+		</div>
+		<div class="detail">
+			<span>Maximum Velocity:</span>
+			<span id="max">{{ session.max }} m/s</span>
+		</div>
+		<div class="detail">
+			<span>Calories Burned:</span>
+			<span id="calories">{{ session.calories }} cal</span>
+		</div>
+	</div>
+</div>
+{% endfor %}
+
+{% endblock %}
