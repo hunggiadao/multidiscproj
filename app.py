@@ -135,14 +135,14 @@ def login():
         rows = cursor.execute(
             "SELECT * FROM users WHERE username = ?", (username,)
         )
-        n = 0
-        p = 0
+        na = 0
+        pa = 0
         i = 0
         for row in rows:
-            n = row[2]
-            p = row[3]
+            na = row[2]
+            pa = row[3]
             i = row[0]
-        if username != n or password != p:
+        if username != na or password != pa:
             check_login = True
             return render_template("login.html", check_login=check_login)
         session["user_id"] = i
