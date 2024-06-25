@@ -12,13 +12,19 @@
 		background-color: white;
 		border-radius: 8px;
 		box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-		border-bottom: 2px solid #1CB5E0;
+		border-bottom: 5px solid #ff6b6b;
 		transition: transform 0.3s ease;
 	}
 
 	.session:hover {
 		transform: scale(1.05);
 	}
+    .button-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-bottom: 40px;
+    }
 
 	.session-header {
 		background-color: #1CB5E0;
@@ -51,6 +57,31 @@
 		display: flex;
 		justify-content: space-between;
 	}
+    .astonishing-button {
+            background: linear-gradient(45deg, #ff6b6b, #f06595);
+            border: none;
+            margin:auto;
+            border-radius: 50px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            color: white;
+            cursor: pointer;
+            font-size: 1.5em;
+            padding: 15px 30px;
+            text-transform: uppercase;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: bold;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .astonishing-button:hover {
+        transform: scale(1.1);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    .astonishing-button:active {
+        transform: scale(1);
+        box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+    }
 </style>
 {% endblock %}
 
@@ -62,8 +93,12 @@
 	<a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i>Logout</a>
 </nav>
 {% endblock %}
-
 {% block content %}
+<form action="/startsession">
+    <div class="button-container">
+        <button class="astonishing-button">Start New Session!</button>
+    </div>
+</form>
 {% for session in sessions %}
 <div class="session">
 	<div class="session-header">
