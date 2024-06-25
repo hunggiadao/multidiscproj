@@ -76,7 +76,9 @@
 
             <label for="password">Password</label>
             <input type="password" id="password" name="password" required>
-            
+            {% if check_signup %}
+			<p style="color:red">The username already exists. Please reenter.</p>
+			{% endif %}
             <button type="submit">Sign Up</button>
         </form>
         <div class="login-link">
