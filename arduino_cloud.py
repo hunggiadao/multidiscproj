@@ -185,7 +185,7 @@ def start_session(running_sessions):
 						'calories': 1000 # to be calculated later
 					}
 					running_sessions.append(session_dict)
-					session_done.set()
+					# session_done.set()
 					return
 
 			# this code is used for timeseries

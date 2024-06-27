@@ -34,10 +34,12 @@ velocity = []
 total_distance = 0
 max_velocity = 0
 average_velocity = 0
+arduino_cloud.session_done.set()
 
 def startsess_helper(running_sessions):
 	arduino_cloud.start_session(running_sessions)
 	print("done with session")
+	arduino_cloud.session_done.set()
 	# return redirect("/")
 
 def login_required(f):
@@ -279,7 +281,10 @@ def updateprofile():
 def startsess():
 		child_thread = Thread(target=startsess_helper, args=(running_sessions, ))
 		parent_thread = current_thread()
-		child_thread.start()
+		if (arduino_cloud.session_done.is_set()):
+			# allow new session to begin
+			arduino_cloud.session_done.clear()
+			child_thread.start()
 		if (current_thread() == parent_thread):
 			return render_template("startsession.html")
 
@@ -445,11 +450,11 @@ def startsess():
 @login_required
 def finishsession():
 		if arduino_cloud.session_done.is_set():
-			connection.close()
+			# connection.close()
 			return redirect("/")
 		else:
-			connection.close()
-			return render_template("startsession.html")
+			# connection.close()
+			return redirect("/startsession") # render_template("startsession.html")
 
 
 @app.route("/logout")
