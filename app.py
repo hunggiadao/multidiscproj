@@ -19,7 +19,6 @@ import subprocess
 import sys
 import arduino_cloud
 
-
 app = Flask(__name__)
 
 app.config["SESSION_PERMANENT"] = timedelta(days=7)
@@ -27,17 +26,16 @@ app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 connection = sqlite3.connect("track_me_run.db")
 cursor = connection.cursor()
-
+arduino_cloud.session_done.set()
 account = {}
 coordinates = []
 velocity = []
 total_distance = 0
 max_velocity = 0
 average_velocity = 0
-arduino_cloud.session_done.set()
 
-def startsess_helper(running_sessions):
-	arduino_cloud.start_session(running_sessions)
+def startsess_helper(running_sessions, weight):
+	arduino_cloud.start_session(running_sessions, weight)
 	print("done with session")
 	arduino_cloud.session_done.set()
 	# return redirect("/")
@@ -224,6 +222,7 @@ def viewprofile():
 				age = row[6]
 				gender = row[7]
 				bmr = row[8]
+		connection.close()
 		return render_template("viewprofile.html", name=name, weight=weight, height=height, age=age, gender=gender, bmr=bmr)
 
 
@@ -273,13 +272,31 @@ def updateprofile():
 				cursor.execute("UPDATE users SET name = ?, weight = ?, height = ?, age = ?, gender = ?, bmr = ? WHERE id = ?",
 											 (name, weight, height, age, gender, bmr, session['user_id'],))
 				connection.commit()
+				connection.close()
 				return redirect("/viewprofile")
+		connection.close()
 		return render_template("updateprofile.html")
 
 @app.route("/startsession")
 @login_required
 def startsess():
-		child_thread = Thread(target=startsess_helper, args=(running_sessions, ))
+		connection = sqlite3.connect("track_me_run.db")
+		cursor = connection.cursor()
+		rows = cursor.execute(
+				"SELECT * FROM users WHERE id = ?", (session['user_id'],))
+		cur_name = 0
+		cur_weight = 0
+		cur_height = 0
+		cur_age = 0
+		cur_gender = 0
+		for row in rows:
+			cur_name = row[1]
+			cur_weight = row[4]
+			cur_height = row[5]
+			cur_age = row[6]
+			cur_gender = row[7]
+		child_thread = Thread(target=startsess_helper, args=(running_sessions, cur_weight))
+		connection.close()
 		parent_thread = current_thread()
 		if (arduino_cloud.session_done.is_set()):
 			# allow new session to begin
