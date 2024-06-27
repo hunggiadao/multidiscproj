@@ -130,16 +130,16 @@ def start_session(running_sessions):
 			resp = api.properties_v2_show(thing_id, gps_id)
 			# print(type(resp._value_updated_at))
 
-			average_velocity = total_distance / (total_time + 0.000001) # to prevent division by 0
-			session_dict = {
-				'datetime': str(now_time),
-				'duration': total_time,
-				'distance': total_distance,
-				'avg': average_velocity,
-				'max': max_velocity,
-				'calories': 1000 # to be calculated later
-			}
-			running_sessions.append(session_dict)
+			# average_velocity = total_distance / (total_time + 0.000001) # to prevent division by 0
+			# session_dict = {
+			# 	'datetime': str(now_time),
+			# 	'duration': total_time,
+			# 	'distance': total_distance,
+			# 	'avg': average_velocity,
+			# 	'max': max_velocity,
+			# 	'calories': 1000 # to be calculated later
+			# }
+			# running_sessions.append(session_dict)
 			if (resp._value_updated_at > prev_record_time):
 				# new record found
 				prev_record_time = resp._value_updated_at
