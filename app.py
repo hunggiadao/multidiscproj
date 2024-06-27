@@ -19,9 +19,10 @@ import subprocess
 import sys
 import arduino_cloud
 
+
 app = Flask(__name__)
 
-app.config["SESSION_PERMANENT"] = True
+app.config["SESSION_PERMANENT"] = timedelta(days=7)
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 connection = sqlite3.connect("track_me_run.db")
@@ -35,13 +36,8 @@ max_velocity = 0
 average_velocity = 0
 
 def startsess_helper(running_sessions):
-	connection = sqlite3.connect("track_me_run.db")
-	cursor = connection.cursor()
 	arduino_cloud.start_session(running_sessions)
 	print("done with session")
-	cursor.execute("UPDATE flag SET flag = ? WHERE user_id = ?",("True",session['user_id'],))
-	connection.commit()
-	connection.close()
 	# return redirect("/")
 
 def login_required(f):
@@ -448,13 +444,7 @@ def startsess():
 @app.route("/finishsession")
 @login_required
 def finishsession():
-		flag = False
-		connection = sqlite3.connect("track_me_run.db")
-		cursor = connection.cursor()
-		rows = cursor.execute("SELECT flag FROM flag WHERE user_id = ?",(session["user_id"],))
-		for row in rows:
-			flag = row[0]
-		if flag:
+		if arduino_cloud.session_done.is_set():
 			connection.close()
 			return redirect("/")
 		else:
