@@ -21,6 +21,48 @@ from time import sleep
 # 	# {'datetime': '18/06/2024', 'duration': '485935', 'distance': 7, 'avg': '2.1', 'max': '3', 'calories': 450},
 # ]
 session_done = Event()
+# mph, kmph, MET
+met_table = [(1.0, 1.6, 2.0),
+						 (1.7, 2.7, 2.3),
+						 (2.0, 3.2, 2.8),
+						 (2.5, 4.0, 3.0),
+						 (3.0, 4.8, 3.3),
+						 (3.5, 5.6, 3.8),
+						 (4.0, 6.4, 5.0),
+						 (4.5, 7.2, 7.0),
+						 (5.0, 8.0, 8.3),
+						 (5.2, 8.4, 9.0),
+						 (6.0, 9.7, 9.8),
+						 (6.7, 10.8, 10.5),
+						 (7.0, 11.3, 11.0),
+						 (7.5, 12.1, 11.5),
+						 (8.0, 12.9, 11.8),
+						 (8.6, 13.8, 12.3),
+						 (9.0, 14.5, 12.8),
+						 (10.0, 16.1, 14.5),
+						 (10.9, 17.5, 16.0),
+						 (11.5, 18.5, 18.0),
+						 (12.0, 19.3, 19.0),
+						 (12.5, 20.1, 19.8),]
+
+def get_met_from_kmph(kmph):
+	if (kmph < met_table[0][1]):
+		# if speed is below minimum, set to minimum
+		return met_table[0][2]
+	
+	lower = 0
+	upper = 0
+	for i in range(0, len(met_table)):
+		if (met_table[i][1] <= kmph):
+			lower = met_table[i][1]
+		else:
+			upper = met_table[i][1]
+			percentage = (kmph - lower) / (upper - lower)
+			met = met_table[i - 1][2] + percentage * (met_table[i][2] - met_table[i - 1][2])
+			return met
+	# for speed demons, needs tuning
+	return met_table[len(met_table) - 1][2]
+
 def haversine(lat1, lon1, lat2, lon2):
 		# Radius of the Earth in kilometers
 		R = 6371.0
@@ -56,7 +98,7 @@ def formatted_time_return(puttime):
 	# print(f"Formatted:\t{formatted_time}")
 	return formatted_time
 
-def start_session(running_sessions):
+def start_session(running_sessions, weight):
 	# Get your token, don't change client ID and client secret
 	oauth_client = BackendApplicationClient(client_id="967VT2YXvzhTjgPr7YqJnwpx4gv9LPj3")
 	token_url = "https://api2.arduino.cc/iot/v1/clients/token"
@@ -87,7 +129,7 @@ def start_session(running_sessions):
 	looping = True # whether the program continuously fetches data in a loop
 	minutes_ago = 0 # how far back in time should the program fetch data, more minutes means longer fetch time
 	sleep_duration = float(1) # how many seconds should the program wait before fetching again
-	inactiv_timeout = 20 # how many seconds until timeout due to inactivity
+	inactiv_timeout = 15 # how many seconds until timeout due to inactivity
 
 	# init data for Properties API interactions
 	# api = iot.PropertiesV2Api(client)
@@ -103,7 +145,7 @@ def start_session(running_sessions):
 	average_velocity = 0
 	total_distance = 0
 	total_time = 0
-	total_calorie_burnt = 0
+	total_calories = 0
 	coordinatestamps = []
 	velocity = []
 	duration_list = []
@@ -133,16 +175,6 @@ def start_session(running_sessions):
 			resp = api.properties_v2_show(thing_id, gps_id)
 			# print(type(resp._value_updated_at))
 
-			# average_velocity = total_distance / (total_time + 0.000001) # to prevent division by 0
-			# session_dict = {
-			# 	'datetime': str(now_time),
-			# 	'duration': total_time,
-			# 	'distance': total_distance,
-			# 	'avg': average_velocity,
-			# 	'max': max_velocity,
-			# 	'calories': 1000 # to be calculated later
-			# }
-			# running_sessions.append(session_dict)
 			if (resp._value_updated_at > prev_record_time):
 				# new record found
 				prev_record_time = resp._value_updated_at
@@ -162,9 +194,9 @@ def start_session(running_sessions):
 					max_velocity = max(max_velocity, current_velocity)
 					# velocity.append(current_velocity)
 					# duration_list.append(interval_length_for_list)
-					print(current_velocity)
-					print(distance)
-					print(delta)
+					# print(current_velocity)
+					# print(distance)
+					# print(delta)
 			else:
 				# no new records found
 				print("No new records since last fetch")
@@ -176,13 +208,18 @@ def start_session(running_sessions):
 					# finish session due to inactivity
 					print(f"No action in the last {inactiv_timeout}s, quitting")
 					average_velocity = total_distance / (total_time + 0.000001) # to prevent division by 0
+					average_velocity_kmph = average_velocity * 3.6
+					met = get_met_from_kmph(average_velocity_kmph)
+					# Calories Burned=MET×Weight (kg)×Duration (hours)
+					total_calories = met * weight * total_time / 3600
+					now_time = now_time + timedelta(hours=7)
 					session_dict = {
-						'datetime': str(now_time),
-						'duration': total_time,
-						'distance': total_distance,
-						'avg': average_velocity,
-						'max': max_velocity,
-						'calories': 1000 # to be calculated later
+						'datetime': now_time.strftime("%d-%m-%Y %H:%M:%S"),
+						'duration': round(total_time, 1),
+						'distance': round(total_distance, 2),
+						'avg': round(average_velocity, 3),
+						'max': round(max_velocity, 3),
+						'calories': round(total_calories, 3)
 					}
 					running_sessions.append(session_dict)
 					# session_done.set()
