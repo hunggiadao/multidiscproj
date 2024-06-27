@@ -7,6 +7,9 @@ import iot_api_client as iot
 from iot_api_client.rest import ApiException
 from iot_api_client.configuration import Configuration
 import math
+from threading import Thread, Event
+from time import sleep
+
 
 # running_sessions = [
 # 	# {'datetime': '18/06/2024', 'duration': '23', 'distance': 5, 'avg': '1.2', 'max': '2', 'calories': 300},
@@ -17,7 +20,7 @@ import math
 # 	# {'datetime': '18/06/2024', 'duration': '485935', 'distance': 7, 'avg': '2.1', 'max': '3', 'calories': 450},
 # 	# {'datetime': '18/06/2024', 'duration': '485935', 'distance': 7, 'avg': '2.1', 'max': '3', 'calories': 450},
 # ]
-
+session_done = Event()
 def haversine(lat1, lon1, lat2, lon2):
 		# Radius of the Earth in kilometers
 		R = 6371.0
@@ -182,6 +185,7 @@ def start_session(running_sessions):
 						'calories': 1000 # to be calculated later
 					}
 					running_sessions.append(session_dict)
+					# session_done.set()
 					return
 
 			# this code is used for timeseries

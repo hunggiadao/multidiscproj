@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Professional Clock Webpage</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(to right, #ff7e5f, #feb47b);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            background: #fff;
+            padding: 30px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            text-align: center;
+            animation: fadeIn 2s;
+        }
+
+        .clock {
+            font-size: 4rem;
+            color: #333;
+            margin-bottom: 20px;
+            letter-spacing: 5px;
+            animation: pulse 1s infinite;
+        }
+
+        .btn-finish {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.3s;
+        }
+
+        .btn-finish:hover {
+            background: #45A049;
+            transform: scale(1.1);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="clock" class="clock">00:00:00</div>
+        <form action="{{ url_for('finishsession') }}">
+            <button type="submit" class="btn-finish">Finish</button>
+        </form>
+    </div>
+
+    <script>
+        let seconds = 0;
+
+        // Function to update the clock
+        function updateClock() {
+            seconds++;
+            const hrs = String(Math.floor(seconds / 3600)).padStart(2, '0');
+            const mins = String(Math.floor((seconds % 3600) / 60)).padStart(2, '0');
+            const secs = String(seconds % 60).padStart(2, '0');
+            const timeString = `${hrs}:${mins}:${secs}`;
+            document.getElementById('clock').innerText = timeString;
+        }
+
+        // Update the clock every second
+        setInterval(updateClock, 1000);
+    </script>
+</body>
+</html>

@@ -19,9 +19,10 @@ import subprocess
 import sys
 import arduino_cloud
 
+
 app = Flask(__name__)
 
-app.config["SESSION_PERMANENT"] = True
+app.config["SESSION_PERMANENT"] = timedelta(days=7)
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 connection = sqlite3.connect("track_me_run.db")
@@ -33,10 +34,12 @@ velocity = []
 total_distance = 0
 max_velocity = 0
 average_velocity = 0
+arduino_cloud.session_done.set()
 
 def startsess_helper(running_sessions):
 	arduino_cloud.start_session(running_sessions)
 	print("done with session")
+	arduino_cloud.session_done.set()
 	# return redirect("/")
 
 def login_required(f):
@@ -278,9 +281,12 @@ def updateprofile():
 def startsess():
 		child_thread = Thread(target=startsess_helper, args=(running_sessions, ))
 		parent_thread = current_thread()
-		child_thread.start()
+		if (arduino_cloud.session_done.is_set()):
+			# allow new session to begin
+			arduino_cloud.session_done.clear()
+			child_thread.start()
 		if (current_thread() == parent_thread):
-			return redirect("/")
+			return render_template("startsession.html")
 
 		# print("Session in progress")
 		# arduino_cloud.start_session(running_sessions)
@@ -443,7 +449,12 @@ def startsess():
 @app.route("/finishsession")
 @login_required
 def finishsession():
-		return
+		if arduino_cloud.session_done.is_set():
+			# connection.close()
+			return redirect("/")
+		else:
+			# connection.close()
+			return redirect("/startsession") # render_template("startsession.html")
 
 
 @app.route("/logout")
@@ -458,5 +469,5 @@ def logout():
 print("before app start")
 # app.run(debug=True)
 print("after app start")
-while(True):
-	pass
+# while(True):
+# 	pass
