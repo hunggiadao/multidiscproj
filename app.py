@@ -35,8 +35,13 @@ max_velocity = 0
 average_velocity = 0
 
 def startsess_helper(running_sessions):
+	connection = sqlite3.connect("track_me_run.db")
+	cursor = connection.cursor()
 	arduino_cloud.start_session(running_sessions)
 	print("done with session")
+	cursor.execute("UPDATE flag SET flag = ? WHERE user_id = ?",("True",session['user_id'],))
+	connection.commit()
+	connection.close()
 	# return redirect("/")
 
 def login_required(f):
@@ -280,7 +285,7 @@ def startsess():
 		parent_thread = current_thread()
 		child_thread.start()
 		if (current_thread() == parent_thread):
-			return redirect("/")
+			return render_template("startsession.html")
 
 		# print("Session in progress")
 		# arduino_cloud.start_session(running_sessions)
@@ -443,7 +448,18 @@ def startsess():
 @app.route("/finishsession")
 @login_required
 def finishsession():
-		return
+		flag = False
+		connection = sqlite3.connect("track_me_run.db")
+		cursor = connection.cursor()
+		rows = cursor.execute("SELECT flag FROM flag WHERE user_id = ?",(session["user_id"],))
+		for row in rows:
+			flag = row[0]
+		if flag:
+			connection.close()
+			return redirect("/")
+		else:
+			connection.close()
+			return render_template("startsession.html")
 
 
 @app.route("/logout")
@@ -458,5 +474,5 @@ def logout():
 print("before app start")
 # app.run(debug=True)
 print("after app start")
-while(True):
-	pass
+# while(True):
+# 	pass
