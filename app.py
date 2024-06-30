@@ -163,7 +163,7 @@ def signup():
 						"SELECT * FROM users WHERE username = ?", (username,))
 				session["user_id"] = [row[0] for row in rows][0]
 				connection.close()
-				return redirect("/")
+				return redirect("/fillprofile")
 		else:
 				connection.close()
 				return render_template("signup.html")
@@ -473,6 +473,28 @@ def finishsession():
 			# connection.close()
 			return redirect("/startsession") # render_template("startsession.html")
 
+@app.route("/fillprofile", methods = ["POST", "GET"])
+@login_required
+def fillprofile():
+	connection = sqlite3.connect("track_me_run.db")
+	cursor = connection.cursor()
+	if request.method == "POST":
+		name = request.form.get("name")
+		weight = int(request.form.get("weight"))
+		height = int(request.form.get("height"))
+		age = int(request.form.get("age"))
+		gender = request.form.get("gender")
+		if gender == "male":
+			bmr = 66 + (6.23 * weight * 2.20462) + \
+                    (12.7 * height * 0.393701) - (6.8 * age)
+		else:
+			bmr = 655 + (4.3 * weight * 2.20462) + \
+                    (4.7 * height * 0.393701) - (4.7 * age)
+		cursor.execute("UPDATE users SET name = ?, weight = ?, height = ?, age = ?, gender = ?, bmr = ? WHERE id = ?",
+											 (name, weight, height, age, gender, bmr, session['user_id'],))
+		connection.close()
+		return redirect("/")
+	return render_template("fillprofile.html")
 
 @app.route("/logout")
 def logout():
@@ -481,6 +503,7 @@ def logout():
 		session.clear()
 		# Redirect user to login form
 		return redirect(url_for("login"))
+
 
 # if __name__ == "__main__":
 print("before app start")
