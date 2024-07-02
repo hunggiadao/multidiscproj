@@ -21,7 +21,7 @@
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             border-radius: 10px;
             text-align: center;
-            animation: fadeIn 2s;
+            position: fixed;
         }
 
         .clock {
@@ -66,23 +66,26 @@
         <form action="{{ url_for('finishsession') }}">
             <button type="submit" class="btn-finish">Finish</button>
         </form>
+        {%if not first_time%}
+        <p style="text-align:center, color:red">Don't give up just yet!!!!</p>
+        {% endif %}
     </div>
 
     <script>
-        let seconds = 0;
+        let seconds = {{start_second}}
 
         // Function to update the clock
         function updateClock() {
-            seconds++;
+            seconds+=0.1;
             const hrs = String(Math.floor(seconds / 3600)).padStart(2, '0');
             const mins = String(Math.floor((seconds % 3600) / 60)).padStart(2, '0');
-            const secs = String(seconds % 60).padStart(2, '0');
+            const secs = String(Math.floor(seconds % 60)).padStart(2, '0');
             const timeString = `${hrs}:${mins}:${secs}`;
             document.getElementById('clock').innerText = timeString;
         }
 
         // Update the clock every second
-        setInterval(updateClock, 1000);
+        setInterval(updateClock, 100);
     </script>
 </body>
 </html>

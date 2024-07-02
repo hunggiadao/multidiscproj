@@ -33,27 +33,30 @@ velocity = []
 total_distance = 0
 max_velocity = 0
 average_velocity = 0
+start_second = 0
+
 
 def startsess_helper(running_sessions, weight):
-	arduino_cloud.start_session(running_sessions, weight)
-	print("done with session")
-	arduino_cloud.session_done.set()
-	# return redirect("/")
+    arduino_cloud.start_session(running_sessions, weight)
+    print("done with session")
+    arduino_cloud.session_done.set()
+    # return redirect("/")
+
 
 def login_required(f):
-		"""
-		Decorate routes to require login.
+    """
+    Decorate routes to require login.
 
-		https://flask.palletsprojects.com/en/latest/patterns/viewdecorators/
-		"""
+    https://flask.palletsprojects.com/en/latest/patterns/viewdecorators/
+    """
 
-		@wraps(f)
-		def decorated_function(*args, **kwargs):
-				if session.get("user_id") is None:
-						return redirect("/login")
-				return f(*args, **kwargs)
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if session.get("user_id") is None:
+            return redirect("/login")
+        return f(*args, **kwargs)
 
-		return decorated_function
+    return decorated_function
 
 
 # def apology(message, code=400):
@@ -84,20 +87,20 @@ def login_required(f):
 #     return hashlib.sha256(password.encode()).hexdigest()
 
 running_sessions = [
-		# {'datetime': '18/06/2024', 'duration': '23', 'distance': 5,
-		#  'avg': '1.2', 'max': '2', 'calories': 300},
-		# {'datetime': '18/06/2024', 'duration': '32432',
-		#  'distance': 10, 'avg': '3.4', 'max': '4', 'calories': 600},
-		# {'datetime': '18/06/2024', 'duration': '485935',
-		#  'distance': 7, 'avg': '2.1', 'max': '3', 'calories': 450},
-		# {'datetime': '18/06/2024', 'duration': '485935',
-		#  'distance': 7, 'avg': '2.1', 'max': '3', 'calories': 450},
-		# {'datetime': '18/06/2024', 'duration': '485935',
-		#  'distance': 7, 'avg': '2.1', 'max': '3', 'calories': 450},
-		# {'datetime': '18/06/2024', 'duration': '485935',
-		#  'distance': 7, 'avg': '2.1', 'max': '3', 'calories': 450},
-		# {'datetime': '18/06/2024', 'duration': '485935',
-		#  'distance': 7, 'avg': '2.1', 'max': '3', 'calories': 450},
+    # {'datetime': '18/06/2024', 'duration': '23', 'distance': 5,
+    #  'avg': '1.2', 'max': '2', 'calories': 300},
+    # {'datetime': '18/06/2024', 'duration': '32432',
+    #  'distance': 10, 'avg': '3.4', 'max': '4', 'calories': 600},
+    # {'datetime': '18/06/2024', 'duration': '485935',
+    #  'distance': 7, 'avg': '2.1', 'max': '3', 'calories': 450},
+    # {'datetime': '18/06/2024', 'duration': '485935',
+    #  'distance': 7, 'avg': '2.1', 'max': '3', 'calories': 450},
+    # {'datetime': '18/06/2024', 'duration': '485935',
+    #  'distance': 7, 'avg': '2.1', 'max': '3', 'calories': 450},
+    # {'datetime': '18/06/2024', 'duration': '485935',
+    #  'distance': 7, 'avg': '2.1', 'max': '3', 'calories': 450},
+    # {'datetime': '18/06/2024', 'duration': '485935',
+    #  'distance': 7, 'avg': '2.1', 'max': '3', 'calories': 450},
 ]
 
 
@@ -105,217 +108,226 @@ running_sessions = [
 @login_required
 def home():
 
-		return render_template("home.html", sessions=running_sessions)
+    return render_template("home.html", sessions=running_sessions)
 
 
 @app.route("/login", methods=["POST", "GET"])
 def login():
-		connection = sqlite3.connect("track_me_run.db")
-		cursor = connection.cursor()
-		session.clear()
-		if request.method == "POST":
-				check_login = False
-				username = request.form.get("username")
-				password = request.form.get("password")
-				# Check if the username exists in the account dictionary
-				rows = cursor.execute(
-						"SELECT * FROM users WHERE username = ?", (username,)
-				)
-				n = 0
-				p = 0
-				i = 0
-				for row in rows:
-						n = row[2]
-						p = row[3]
-						i = row[0]
-				if username != n or password != p:
-						check_login = True
-						return render_template("login.html", check_login=check_login)
-				session["user_id"] = i
-				connection.close()
-				return redirect("/")
-		else:
-				connection.close()
-				return render_template("login.html")
+    connection = sqlite3.connect("track_me_run.db")
+    cursor = connection.cursor()
+    session.clear()
+    if request.method == "POST":
+        check_login = False
+        username = request.form.get("username")
+        password = request.form.get("password")
+        # Check if the username exists in the account dictionary
+        rows = cursor.execute(
+            "SELECT * FROM users WHERE username = ?", (username,)
+        )
+        n = 0
+        p = 0
+        i = 0
+        for row in rows:
+            n = row[2]
+            p = row[3]
+            i = row[0]
+        if username != n or password != p:
+            check_login = True
+            return render_template("login.html", check_login=check_login)
+        session["user_id"] = i
+        connection.close()
+        return redirect("/")
+    else:
+        connection.close()
+        return render_template("login.html")
 
 
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
-		session.clear()
-		connection = sqlite3.connect("track_me_run.db")
-		cursor = connection.cursor()
-		if request.method == "POST":
-				check_signup = False
-				username = request.form.get("username")
-				password = request.form.get("password")
-				# Check if the username is already taken
-				rows = cursor.execute("SELECT username FROM users")
-				for row in rows:
-						if username == row[0]:
-								check_signup = True
-								return render_template("signup.html", check_signup=check_signup)
+    session.clear()
+    connection = sqlite3.connect("track_me_run.db")
+    cursor = connection.cursor()
+    if request.method == "POST":
+        check_signup = False
+        username = request.form.get("username")
+        password = request.form.get("password")
+        # Check if the username is already taken
+        rows = cursor.execute("SELECT username FROM users")
+        for row in rows:
+            if username == row[0]:
+                check_signup = True
+                return render_template("signup.html", check_signup=check_signup)
 
-				# Hash the password before storing
-				cursor.execute(
-						"INSERT INTO users (username, password) VALUES (?,?)", (username, password,))
-				connection.commit()
-				rows = cursor.execute(
-						"SELECT * FROM users WHERE username = ?", (username,))
-				session["user_id"] = [row[0] for row in rows][0]
-				connection.close()
-				return redirect("/fillprofile")
-		else:
-				connection.close()
-				return render_template("signup.html")
+        # Hash the password before storing
+        cursor.execute(
+            "INSERT INTO users (username, password) VALUES (?,?)", (username, password,))
+        connection.commit()
+        rows = cursor.execute(
+            "SELECT * FROM users WHERE username = ?", (username,))
+        session["user_id"] = [row[0] for row in rows][0]
+        connection.close()
+        return redirect("/fillprofile")
+    else:
+        connection.close()
+        return render_template("signup.html")
 
 
 @app.route("/changepass", methods=['GET', 'POST'])
 @login_required
 def changepass():
-		connection = sqlite3.connect("track_me_run.db")
-		cursor = connection.cursor()
-		if request.method == "POST":
-				check = False
-				confirm_check = False
-				old_password = request.form.get("old_password")
-				rows = cursor.execute(
-						"SELECT password FROM users WHERE id = ?", (session['user_id'],))
-				for row in rows:
-						if old_password != row[0]:
-								check = True
-								# render lai html voi dong "Your submission is incorrect"
-								return render_template("changepass.html", check=check)
-				new_password = request.form.get("new_password")
-				confirm_password = request.form.get("confirm_password")
-				if new_password != confirm_password:
-						confirm_check = True
-						# render lai html voi dong "Wrong password resubmission"
-						return render_template("changepass.html", confirm_check=confirm_check)
-				cursor.execute("UPDATE users SET password = ? WHERE id = ?",
-											 (new_password, session['user_id'],))
-				connection.commit()
-				connection.close()
-				return redirect("/")
-		else:
-				connection.close()
-				return render_template("changepass.html")
+    connection = sqlite3.connect("track_me_run.db")
+    cursor = connection.cursor()
+    if request.method == "POST":
+        check = False
+        confirm_check = False
+        old_password = request.form.get("old_password")
+        rows = cursor.execute(
+            "SELECT password FROM users WHERE id = ?", (session['user_id'],))
+        for row in rows:
+            if old_password != row[0]:
+                check = True
+                # render lai html voi dong "Your submission is incorrect"
+                return render_template("changepass.html", check=check)
+        new_password = request.form.get("new_password")
+        confirm_password = request.form.get("confirm_password")
+        if new_password != confirm_password:
+            confirm_check = True
+            # render lai html voi dong "Wrong password resubmission"
+            return render_template("changepass.html", confirm_check=confirm_check)
+        cursor.execute("UPDATE users SET password = ? WHERE id = ?",
+                       (new_password, session['user_id'],))
+        connection.commit()
+        connection.close()
+        return redirect("/")
+    else:
+        connection.close()
+        return render_template("changepass.html")
 # TO BE CONTINUED
 
 
 @app.route("/viewprofile")
 @login_required
 def viewprofile():
-		connection = sqlite3.connect("track_me_run.db")
-		cursor = connection.cursor()
-		rows = cursor.execute(
-				"SELECT * FROM users WHERE id = ?", (session['user_id'],))
-		name = 0
-		weight = 0
-		height = 0
-		age = 0
-		gender = 0
-		bmr = 0
-		for row in rows:
-				name = row[1]
-				weight = row[4]
-				height = row[5]
-				age = row[6]
-				gender = row[7]
-				bmr = row[8]
-		connection.close()
-		return render_template("viewprofile.html", name=name, weight=weight, height=height, age=age, gender=gender, bmr=bmr)
+    connection = sqlite3.connect("track_me_run.db")
+    cursor = connection.cursor()
+    rows = cursor.execute(
+        "SELECT * FROM users WHERE id = ?", (session['user_id'],))
+    name = 0
+    weight = 0
+    height = 0
+    age = 0
+    gender = 0
+    bmr = 0
+    for row in rows:
+        name = row[1]
+        weight = row[4]
+        height = row[5]
+        age = row[6]
+        gender = row[7]
+        bmr = row[8]
+    connection.close()
+    return render_template("viewprofile.html", name=name, weight=weight, height=height, age=age, gender=gender, bmr=bmr)
 
 
 @app.route("/updateprofile", methods=['GET', 'POST'])
 @login_required
 def updateprofile():
-		connection = sqlite3.connect("track_me_run.db")
-		cursor = connection.cursor()
-		rows = cursor.execute(
-				"SELECT * FROM users WHERE id = ?", (session['user_id'],))
-		cur_name = 0
-		cur_weight = 0
-		cur_height = 0
-		cur_age = 0
-		cur_gender = 0
-		for row in rows:
-				cur_name = row[1]
-				cur_weight = row[4]
-				cur_height = row[5]
-				cur_age = row[6]
-				cur_gender = row[7]
-		if request.method == "POST":
-				name = request.form.get("name")
-				if name == "":
-						name = cur_name
-				try:
-						weight = int(request.form.get("weight"))
-				except ValueError:
-						weight = cur_weight
-				try:
-						height = int(request.form.get("height"))
-				except ValueError:
-						height = cur_height
-				try:
-						age = int(request.form.get("age"))
-				except ValueError:
-						age = cur_age
-				gender = request.form.get("gender")
-				if gender == None:
-						gender = cur_gender
-				if gender == "male":
-						bmr = 66 + (6.23 * weight * 2.20462) + \
-								(12.7 * height * 0.393701) - (6.8 * age)
-				else:
-						bmr = 655 + (4.3 * weight * 2.20462) + \
-								(4.7 * height * 0.393701) - (4.7 * age)
-				cursor.execute("UPDATE users SET name = ?, weight = ?, height = ?, age = ?, gender = ?, bmr = ? WHERE id = ?",
-											 (name, weight, height, age, gender, bmr, session['user_id'],))
-				connection.commit()
-				connection.close()
-				return redirect("/viewprofile")
-		connection.close()
-		return render_template("updateprofile.html")
+    connection = sqlite3.connect("track_me_run.db")
+    cursor = connection.cursor()
+    rows = cursor.execute(
+        "SELECT * FROM users WHERE id = ?", (session['user_id'],))
+    cur_name = 0
+    cur_weight = 0
+    cur_height = 0
+    cur_age = 0
+    cur_gender = 0
+    for row in rows:
+        cur_name = row[1]
+        cur_weight = row[4]
+        cur_height = row[5]
+        cur_age = row[6]
+        cur_gender = row[7]
+    if request.method == "POST":
+        name = request.form.get("name")
+        if name == "":
+            name = cur_name
+        try:
+            weight = int(request.form.get("weight"))
+        except ValueError:
+            weight = cur_weight
+        try:
+            height = int(request.form.get("height"))
+        except ValueError:
+            height = cur_height
+        try:
+            age = int(request.form.get("age"))
+        except ValueError:
+            age = cur_age
+        gender = request.form.get("gender")
+        if gender == None:
+            gender = cur_gender
+        if gender == "male":
+            bmr = 66 + (6.23 * weight * 2.20462) + \
+                (12.7 * height * 0.393701) - (6.8 * age)
+        else:
+            bmr = 655 + (4.3 * weight * 2.20462) + \
+                (4.7 * height * 0.393701) - (4.7 * age)
+        cursor.execute("UPDATE users SET name = ?, weight = ?, height = ?, age = ?, gender = ?, bmr = ? WHERE id = ?",
+                       (name, weight, height, age, gender, bmr, session['user_id'],))
+        connection.commit()
+        connection.close()
+        return redirect("/viewprofile")
+    connection.close()
+    return render_template("updateprofile.html")
+
 
 @app.route("/startsession")
 @login_required
 def startsess():
-		connection = sqlite3.connect("track_me_run.db")
-		cursor = connection.cursor()
-		rows = cursor.execute(
-				"SELECT * FROM users WHERE id = ?", (session['user_id'],))
-		cur_name = 0
-		cur_weight = 0
-		cur_height = 0
-		cur_age = 0
-		cur_gender = 0
-		for row in rows:
-			cur_name = row[1]
-			cur_weight = row[4]
-			cur_height = row[5]
-			cur_age = row[6]
-			cur_gender = row[7]
-		child_thread = Thread(target=startsess_helper, args=(running_sessions, cur_weight))
-		connection.close()
-		parent_thread = current_thread()
-		if (arduino_cloud.session_done.is_set()):
-			# allow new session to begin
-			arduino_cloud.session_done.clear()
-			child_thread.start()
-		if (current_thread() == parent_thread):
-			return render_template("startsession.html")
+    connection = sqlite3.connect("track_me_run.db")
+    cursor = connection.cursor()
+    rows = cursor.execute(
+        "SELECT * FROM users WHERE id = ?", (session['user_id'],))
+    cur_name = 0
+    cur_weight = 0
+    cur_height = 0
+    cur_age = 0
+    cur_gender = 0
+    for row in rows:
+        cur_name = row[1]
+        cur_weight = row[4]
+        cur_height = row[5]
+        cur_age = row[6]
+        cur_gender = row[7]
+    child_thread = Thread(target=startsess_helper,
+                          args=(running_sessions, cur_weight))
+    connection.close()
+    parent_thread = current_thread()
 
-		# print("Session in progress")
-		# arduino_cloud.start_session(running_sessions)
-		# # clicked = not clicked
-		# print("Session finished")
-		# while (clicked):
-		# 	print("nah")
-		# print("stopped")
-		# if (clicked):
-		# time.sleep(5)
-		# result = subprocess.run([sys.executable, "-c", "import time; time.sleep(2); print('print by subprocess')"], capture_output=True, text=True)
-		# return redirect("/")
+    first_time = False
+    if (arduino_cloud.session_done.is_set()):
+        # allow new session to begin
+        global start_second
+        start_second = datetime.now()
+        arduino_cloud.session_done.clear()
+        child_thread.start()
+        first_time = True
+    if (current_thread() == parent_thread):
+        now = datetime.now()
+        elapsed = int((now - start_second).total_seconds())
+        return render_template("startsession.html", start_second=elapsed, first_time=first_time)
+
+    # print("Session in progress")
+    # arduino_cloud.start_session(running_sessions)
+    # # clicked = not clicked
+    # print("Session finished")
+    # while (clicked):
+    # 	print("nah")
+    # print("stopped")
+    # if (clicked):
+    # time.sleep(5)
+    # result = subprocess.run([sys.executable, "-c", "import time; time.sleep(2); print('print by subprocess')"], capture_output=True, text=True)
+    # return redirect("/")
 
 
 # def startsession():
@@ -466,43 +478,47 @@ def startsess():
 @app.route("/finishsession")
 @login_required
 def finishsession():
-		if arduino_cloud.session_done.is_set():
-			# connection.close()
-			return redirect("/")
-		else:
-			# connection.close()
-			return redirect("/startsession") # render_template("startsession.html")
+    if arduino_cloud.session_done.is_set():
+        # connection.close()
+        return redirect("/")
+    else:
+        # connection.close()
+        # render_template("startsession.html")
+        return redirect("/startsession")
 
-@app.route("/fillprofile", methods = ["POST", "GET"])
+
+@app.route("/fillprofile", methods=["POST", "GET"])
 @login_required
 def fillprofile():
-	connection = sqlite3.connect("track_me_run.db")
-	cursor = connection.cursor()
-	if request.method == "POST":
-		name = request.form.get("name")
-		weight = int(request.form.get("weight"))
-		height = int(request.form.get("height"))
-		age = int(request.form.get("age"))
-		gender = request.form.get("gender")
-		if gender == "male":
-			bmr = 66 + (6.23 * weight * 2.20462) + \
-                    (12.7 * height * 0.393701) - (6.8 * age)
-		else:
-			bmr = 655 + (4.3 * weight * 2.20462) + \
-                    (4.7 * height * 0.393701) - (4.7 * age)
-		cursor.execute("UPDATE users SET name = ?, weight = ?, height = ?, age = ?, gender = ?, bmr = ? WHERE id = ?",
-											 (name, weight, height, age, gender, bmr, session['user_id'],))
-		connection.close()
-		return redirect("/")
-	return render_template("fillprofile.html")
+    connection = sqlite3.connect("track_me_run.db")
+    cursor = connection.cursor()
+    if request.method == "POST":
+        name = request.form.get("name")
+        weight = int(request.form.get("weight"))
+        height = int(request.form.get("height"))
+        age = int(request.form.get("age"))
+        gender = request.form.get("gender")
+        if gender == "male":
+            bmr = 66 + (6.23 * weight * 2.20462) + \
+                (12.7 * height * 0.393701) - (6.8 * age)
+        else:
+            bmr = 655 + (4.3 * weight * 2.20462) + \
+                (4.7 * height * 0.393701) - (4.7 * age)
+        cursor.execute("UPDATE users SET name = ?, weight = ?, height = ?, age = ?, gender = ?, bmr = ? WHERE id = ?",
+                       (name, weight, height, age, gender, bmr, session['user_id'],))
+        connection.commit()
+        connection.close()
+        return redirect("/")
+    return render_template("fillprofile.html")
+
 
 @app.route("/logout")
 def logout():
-		"""Log user out"""
-		# Forget any user_id
-		session.clear()
-		# Redirect user to login form
-		return redirect(url_for("login"))
+    """Log user out"""
+    # Forget any user_id
+    session.clear()
+    # Redirect user to login form
+    return redirect(url_for("login"))
 
 
 # if __name__ == "__main__":
