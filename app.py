@@ -140,7 +140,7 @@ def login_required(f):
 @login_required
 def home():
 		
-		return render_template("home.html", sessions=running_sessions)
+		return render_template("home.html", sessions=reversed(running_sessions))
 
 
 @app.route("/login", methods=["POST", "GET"])
