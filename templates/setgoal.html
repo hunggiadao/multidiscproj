@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block title %}Update Profile{% endblock %}
+
+
+{% block css %}
+<style>
+	.container {
+		margin: auto;
+		max-width: 800px;
+		background-color: white;
+		padding: 40px;
+		border-radius: 8px;
+		box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+	}
+
+	.container h2 {
+		margin: 0;
+		margin-bottom: 20px;
+	}
+
+	/* form {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.form-group {
+		margin-bottom: 20px;
+		margin-right: 20px;
+		position: relative;
+	}
+
+	.form-group label {
+		margin-bottom: 5px;
+		font-weight: bold;
+		color: #333;
+	}
+
+	.form-control {
+		width: 100%;
+		padding: 10px;
+		border: 1px solid #ccc;
+		border-radius: 5px;
+		transition: border-color 0.3s ease;
+	}
+
+	.form-control:focus {
+		border-color: #1CB5E0;
+		outline: none;
+	} */
+
+	.gender-options {
+		margin: 10px 0;
+	}
+
+	.gender-options label {
+		display: inline;
+		margin-right: 10px;
+	}
+
+	.submit-btn {
+		margin-top: 20px;
+		padding: 10px;
+		background-color: #1CB5E0;
+		border: none;
+		border-radius: 5px;
+		color: white;
+		font-size: 1.1em;
+		cursor: pointer;
+		transition: background-color 0.3s ease;
+	}
+
+	.submit-btn:hover {
+		background-color: #19a3c9;
+	}
+</style>
+{% endblock %}
+
+{% block navbar%}
+<nav>
+	<a class="active" href="{{ url_for('home') }}"><i class="fas fa-home"></i>Home</a>
+	<a href="{{ url_for('viewprofile') }}"><i class="fas fa-user"></i>My Profile</a>
+	<a href="{{ url_for('changepass') }}"><i class="fas fa-key"></i>Change Password</a>
+	<a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i>Logout</a>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+	<h2 class="text-center">Update Profile</h2>
+	<form action="{{ url_for('setgoal') }}" method="POST">
+		<div class="form-group">
+			<label for="distance">Distance</label>
+			<input type="number" class="form-control" id="distance" name="distance" required>
+		</div>
+		<div class="form-group">
+			<label for="calories">Calories</label>
+			<input type="number" class="form-control" id="calories" name="calories" required>
+		</div>
+		<button type="submit" class="submit-btn">Continue</button>
+	</form>
+    <form action="{{ url_for('setgoal') }}" method="POST">
+		<button type="submit" class="submit-btn">Skip</button>
+	</form>
+</div>
+{% endblock %}
+

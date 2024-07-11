@@ -96,7 +96,7 @@
 </nav>
 {% endblock %}
 {% block content %}
-<form action="/startsession">
+<form action="{{ url_for('setgoal') }}">
 	<div class="button-container">
 		<button class="astonishing-button">Start New Session!</button>
 	</div>
