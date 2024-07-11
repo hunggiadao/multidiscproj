@@ -325,6 +325,18 @@ def updateprofile():
 		# connection.close()
 		return render_template("updateprofile.html")
 
+@app.route("/setgoal", methods = ['GET','POST'])
+@login_required
+def setgoal():
+	if request.method == "POST":
+		global goal_distance
+		goal_distance = request.form.get("distance")
+		global goal_calories 
+		goal_calories = request.form.get("calories")
+		if goal_distance == None or goal_calories == None:
+			return redirect("/startsession")
+		return redirect("/startsession")
+	return render_template("setgoal.html")
 
 @app.route("/startsession")
 @login_required
@@ -527,7 +539,12 @@ def finishsession():
 				# connection.close()
 				add_sessions_for(session['user_id'], running_sessions=running_sessions)
 				print("added newest session to database")
-				return redirect("/")
+				global goal_distance
+				global goal_calories
+				if running_sessions['distance'] > goal_distance and running_sessions['calories'] > goal_calories:
+					return render_template("status.html", flag = True)
+				else:
+					return render_template("status.html", flag = False)
 		else:
 				# connection.close()
 				# render_template("startsession.html")
@@ -572,6 +589,9 @@ def logout():
 		# Redirect user to login form
 		return redirect(url_for("login"))
 
+# @app.route("/test")
+# def test():
+# 	return render_template("status.html", flag = True)
 
 # if __name__ == "__main__":
 print("before app start")
