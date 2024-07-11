@@ -72,11 +72,16 @@
     </div>
 
     <script>
-        let seconds = {{start_second}}
+        let seconds = {{start_second}};
+        let lastUpdateTime = Date.now();
 
         // Function to update the clock
         function updateClock() {
-            seconds+=0.1;
+            const now = Date.now();
+            const elapsed = (now - lastUpdateTime) / 1000;
+            seconds += elapsed;
+            lastUpdateTime = now;
+
             const hrs = String(Math.floor(seconds / 3600)).padStart(2, '0');
             const mins = String(Math.floor((seconds % 3600) / 60)).padStart(2, '0');
             const secs = String(Math.floor(seconds % 60)).padStart(2, '0');
@@ -84,8 +89,18 @@
             document.getElementById('clock').innerText = timeString;
         }
 
-        // Update the clock every second
+        // Function to handle visibility change
+        function handleVisibilityChange() {
+            if (document.hidden) {
+                lastUpdateTime = Date.now();
+            }
+        }
+
+        // Update the clock every 100 milliseconds
         setInterval(updateClock, 100);
+
+        // Listen for visibility change events
+        document.addEventListener('visibilitychange', handleVisibilityChange);
     </script>
 </body>
 </html>
