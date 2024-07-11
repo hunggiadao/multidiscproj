@@ -21,7 +21,7 @@ import arduino_cloud
 
 app = Flask(__name__)
 
-app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(minutes=30)
+app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(minutes=1)
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 connection = sqlite3.connect("track_me_run.db")
