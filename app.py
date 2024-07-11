@@ -21,7 +21,7 @@ import arduino_cloud
 
 app = Flask(__name__)
 
-app.config["SESSION_PERMANENT"] = timedelta(minutes=30)
+app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(minutes=1)
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 connection = sqlite3.connect("track_me_run.db")
@@ -556,7 +556,7 @@ def finishsession():
         global goal_calories
         global goal_flag
         if goal_flag:
-            if int(running_sessions[0]['distance']) > int(goal_distance) and int(running_sessions[0]['calories']) > int(goal_calories):
+            if int(running_sessions[0]['distance']) >= int(goal_distance) and int(running_sessions[0]['calories']) >= int(goal_calories):
                 return render_template("status.html", flag=True)
             else:
                 return render_template("status.html", flag=False)
