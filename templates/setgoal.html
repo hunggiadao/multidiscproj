@@ -86,7 +86,7 @@
 
 {% block content %}
 <div class="container">
-	<h2 class="text-center">Update Profile</h2>
+	<h2 class="text-center">Set goals for this workout</h2>
 	<form action="{{ url_for('setgoal') }}" method="POST" id="goalForm">
 		<div class="form-group">
 			<label for="distance">Distance (meters)</label>
@@ -104,8 +104,8 @@
 </div>
 <script>
 	document.getElementById('goalForm').addEventListener('submit', function(event) {
-		let distance = document.getElementById('distance').value;
-		let calories = document.getElementById('calories').value;
+		let distance = Number.parseInt(document.getElementById('distance').value);
+		let calories = Number.parseInt(document.getElementById('calories').value);
 	
 		if (distance <= 0 || calories <= 0) {
 			alert('Please enter positve values for distance and calories (higher than 0).');
