@@ -21,7 +21,10 @@ import arduino_cloud
 
 app = Flask(__name__)
 
-app.config["SESSION_PERMANENT"] = timedelta(minutes=30)
+# BUG: if using permanent session, user will be forced to logout after timeout even when still using app
+# FIXME: need to return to login page on next startup if app is shut down unexpectedly
+# TODO: save database to a remote server
+app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(minutes=30)
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 connection = sqlite3.connect("track_me_run.db")
@@ -34,6 +37,9 @@ total_distance = 0
 max_velocity = 0
 average_velocity = 0
 start_second = 0
+goal_distance = 0
+goal_calories = 0
+goal_flag = False
 running_sessions = [
     # {'datetime': '18/06/2024', 'duration': '23', 'distance': 5,
     #  'avg': '1.2', 'max': '2', 'calories': 300},
@@ -149,6 +155,7 @@ def home():
     return render_template("home.html", sessions=reversed(running_sessions))
 
 
+# TODO: add a "being logged in" flag to db so that app can know if it was shut down unexpectedly
 @app.route("/login", methods=["POST", "GET"])
 def login():
     session.clear()
@@ -177,8 +184,8 @@ def login():
         session["user_id"] = i
         connection.close()
 
-        global running_sessions
-        running_sessions = get_sessions_from(session['user_id'])
+        # global running_sessions
+        # running_sessions = get_sessions_from(session['user_id'])
         return redirect("/")
     else:
         # connection.close()
@@ -268,7 +275,7 @@ def viewprofile():
         name = row[1]
         weight = row[4]
         height = row[5]
-        age = row[6]
+        age = int(row[6])
         gender = row[7]
         bmr = row[8]
     connection.close()
@@ -291,9 +298,9 @@ def updateprofile():
         cur_name = row[1]
         cur_weight = row[4]
         cur_height = row[5]
-        cur_age = row[6]
+        cur_age = int(row[6])
         cur_gender = row[7]
-    # TODO: send this data to html page
+    # DONE: send this data to html page
     connection.close()
 
     if request.method == "POST":
@@ -303,33 +310,36 @@ def updateprofile():
         if name == "":
             name = cur_name
         try:
-            weight = int(request.form.get("weight"))
+            weight = float(request.form.get("weight"))
         except ValueError:
+            print("weight value error")
             weight = cur_weight
         try:
-            height = int(request.form.get("height"))
+            height = float(request.form.get("height"))
         except ValueError:
+            print("height value error")
             height = cur_height
         try:
             age = int(request.form.get("age"))
         except ValueError:
+            print("age value error")
             age = cur_age
-        gender = request.form.get("gender")
+        gender = request.form.get(cur_gender)
         if gender == None:
             gender = cur_gender
         if gender == "male":
-            bmr = 66 + (6.23 * weight * 2.20462) + \
-                (12.7 * height * 0.393701) - (6.8 * age)
+            bmr = 66 + (6.23 * weight * 2.20462)
+            bmr = bmr + (12.7 * height * 0.393701) - (6.8 * age)
         else:
-            bmr = 655 + (4.3 * weight * 2.20462) + \
-                (4.7 * height * 0.393701) - (4.7 * age)
+            bmr = 655 + (4.3 * weight * 2.20462)
+            bmr = bmr + (4.7 * height * 0.393701) - (4.7 * age)
         cursor.execute("UPDATE users SET name = ?, weight = ?, height = ?, age = ?, gender = ?, bmr = ? WHERE id = ?",
                        (name, weight, height, age, gender, bmr, session['user_id'],))
         connection.commit()
         connection.close()
         return redirect("/viewprofile")
     # connection.close()
-    return render_template("updateprofile.html")
+    return render_template("updateprofile.html", name=cur_name, weight=cur_weight, height=cur_height, age=cur_age, gender=cur_gender)
 
 
 @app.route("/setgoal", methods=['GET', 'POST'])
@@ -337,16 +347,21 @@ def updateprofile():
 def setgoal():
     if request.method == "POST":
         global goal_distance
-        global goal_flag
-        goal_flag = True
-        goal_distance = request.form.get("distance")
         global goal_calories
+        global goal_flag # if goal is set for this session
+        goal_distance = request.form.get("distance")
         goal_calories = request.form.get("calories")
+        
         if goal_distance == None or goal_calories == None:
+            # if set goal is skipped
             goal_calories = 0
             goal_distance = 0
             goal_flag = False
-            return redirect("/startsession")
+        else:
+            goal_distance = int(goal_distance)
+            goal_calories = int(goal_calories)
+            goal_flag = True
+            
         return redirect("/startsession")
     return render_template("setgoal.html")
 
@@ -367,7 +382,7 @@ def startsess():
         cur_name = row[1]
         cur_weight = row[4]
         cur_height = row[5]
-        cur_age = row[6]
+        cur_age = int(row[6])
         cur_gender = row[7]
     child_thread = Thread(target=startsess_helper,
                           args=(running_sessions, cur_weight))
@@ -556,7 +571,7 @@ def finishsession():
         global goal_calories
         global goal_flag
         if goal_flag:
-            if int(running_sessions[0]['distance']) > int(goal_distance) and int(running_sessions[0]['calories']) > int(goal_calories):
+            if (int(running_sessions[-1]['distance']) >= int(goal_distance)) and (int(running_sessions[-1]['calories']) >= int(goal_calories)):
                 return render_template("status.html", flag=True)
             else:
                 return render_template("status.html", flag=False)
@@ -575,16 +590,16 @@ def fillprofile():
         connection = sqlite3.connect("track_me_run.db")
         cursor = connection.cursor()
         name = request.form.get("name")
-        weight = int(request.form.get("weight"))
-        height = int(request.form.get("height"))
+        weight = float(request.form.get("weight"))
+        height = float(request.form.get("height"))
         age = int(request.form.get("age"))
         gender = request.form.get("gender")
         if gender == "male":
-            bmr = 66 + (6.23 * weight * 2.20462) + \
-                (12.7 * height * 0.393701) - (6.8 * age)
+            bmr = 66 + (6.23 * weight * 2.20462)
+            bmr = bmr + (12.7 * height * 0.393701) - (6.8 * age)
         else:
-            bmr = 655 + (4.3 * weight * 2.20462) + \
-                (4.7 * height * 0.393701) - (4.7 * age)
+            bmr = 655 + (4.3 * weight * 2.20462)
+            bmr = bmr + (4.7 * height * 0.393701) - (4.7 * age)
         cursor.execute("UPDATE users SET name = ?, weight = ?, height = ?, age = ?, gender = ?, bmr = ? WHERE id = ?",
                        (name, weight, height, age, gender, bmr, session['user_id'],))
         connection.commit()

@@ -86,14 +86,14 @@
 
 {% block content %}
 <div class="container">
-	<h2 class="text-center">Update Profile</h2>
-	<form action="{{ url_for('setgoal') }}" method="POST">
+	<h2 class="text-center">Set goals for this workout</h2>
+	<form action="{{ url_for('setgoal') }}" method="POST" id="goalForm">
 		<div class="form-group">
-			<label for="distance">Distance</label>
+			<label for="distance">Distance (meters)</label>
 			<input type="number" class="form-control" id="distance" name="distance" required>
 		</div>
 		<div class="form-group">
-			<label for="calories">Calories</label>
+			<label for="calories">Calories (kcal)</label>
 			<input type="number" class="form-control" id="calories" name="calories" required>
 		</div>
 		<button type="submit" class="submit-btn">Continue</button>
@@ -102,5 +102,16 @@
 		<button type="submit" class="submit-btn">Skip</button>
 	</form>
 </div>
+<script>
+	document.getElementById('goalForm').addEventListener('submit', function(event) {
+		let distance = Number.parseInt(document.getElementById('distance').value);
+		let calories = Number.parseInt(document.getElementById('calories').value);
+	
+		if (distance <= 0 || calories <= 0) {
+			alert('Please enter positve values for distance and calories (higher than 0).');
+			event.preventDefault(); // Prevent form submission
+		}
+	});
+</script>
 {% endblock %}
-
+	
