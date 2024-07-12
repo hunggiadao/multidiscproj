@@ -87,18 +87,17 @@
     <div class="message">
         <img src="https://cdn3d.iconscout.com/3d/premium/thumb/trophy-5498563-4577197.png" alt="">
         <h1>Congratulations!</h1>
-        <p>You've achieved your goals for this workout.</p>
+        <p>You've successfully finished goal.</p>
         <p>Keep up the great work!</p>
         <a href="{{ url_for('home') }}" class="btn">Back to Dashboard</a>
     </div>
     {% else %}
     <div class="message">
-        <p>Nice try! Unfortunately, you have not reached your goals this time.</p>
+        <p>Unfortunately, you have not reached your goal this time.</p>
         <p>Please try better next time!</p>
         <a href="{{ url_for('home') }}" class="btn">Back to Dashboard</a>
     </div>
     {% endif %}
 
 </body>
-
 </html>
