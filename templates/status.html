@@ -1,79 +1,99 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Congratulations!</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lilita+One&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f0f0f0;
-            text-align: center;
             margin: 0;
-            padding: 20px;
+            padding: 0;
+            background: linear-gradient(#1CB5E0 0%, #000851, #ff6b6b 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
+
+
         h1 {
             color: #333;
+            font-family: "Lilita One", sans-serif;
+            font-weight: 400;
+            font-style: normal;
+            margin-bottom: 10px;
         }
+
         p {
             color: #666;
             line-height: 1.6;
+            margin: 0;
         }
+
         .btn {
             display: inline-block;
-            background-color: #007bff;
+            background-color: #6b3df5;
             color: #fff;
             padding: 10px 20px;
             text-decoration: none;
-            border-radius: 4px;
-            margin-top: 20px;
+            border-radius: 15px;
+            margin-top: 30px;
         }
+
         .btn:hover {
-            background-color: #0056b3;
+            background-color: #5933c9;
         }
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin: 0;
-            padding: 0;
-            background-image: url('');
-            background-repeat: no-repeat;
-            background-size: cover;
-            background-position: center;
-            color: white;
-        }
-        
+
         .message {
             font-size: 1.2em;
-            margin-top: 50vh;
-            transform: translateY(-50%);
+            margin: 0;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 20px;
+            text-align: center;
+            width: 600px;
+            animation: message-appear 1.0s ease;
         }
+
+        @keyframes message-appear {
+            from {
+        transform: scale(0.8);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+        }
+
         .action {
             color: #007bff;
             text-decoration: none;
         }
 
+        img {
+            width: 300px;
+        }
     </style>
 </head>
+
 <body>
     {%if flag%}
     <div class="message">
+        <img src="https://cdn3d.iconscout.com/3d/premium/thumb/trophy-5498563-4577197.png" alt="">
         <h1>Congratulations!</h1>
-        <p>You've achieved your goals for this workout.</p>
+        <p>You've successfully finished goal.</p>
         <p>Keep up the great work!</p>
         <a href="{{ url_for('home') }}" class="btn">Back to Dashboard</a>
     </div>
     {% else %}
     <div class="message">
-        <p>Nice try! Unfortunately, you have not reached your goals this time.</p>
+        <p>Unfortunately, you have not reached your goal this time.</p>
         <p>Please try better next time!</p>
         <a href="{{ url_for('home') }}" class="btn">Back to Dashboard</a>
     </div>
