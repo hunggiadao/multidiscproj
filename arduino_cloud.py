@@ -10,7 +10,6 @@ import math
 from threading import Thread, Event
 from time import sleep
 
-
 # running_sessions = [
 # 	# {'datetime': '18/06/2024', 'duration': '23', 'distance': 5, 'avg': '1.2', 'max': '2', 'calories': 300},
 # 	# {'datetime': '18/06/2024', 'duration': '32432', 'distance': 10, 'avg': '3.4', 'max': '4', 'calories': 600},
@@ -60,35 +59,36 @@ def get_met_from_kmph(kmph):
 			percentage = (kmph - lower) / (upper - lower)
 			met = met_table[i - 1][2] + percentage * (met_table[i][2] - met_table[i - 1][2])
 			return met
+		
 	# for speed demons, needs tuning
 	return met_table[len(met_table) - 1][2]
 
 def haversine(lat1, lon1, lat2, lon2):
-		# Radius of the Earth in kilometers
-		R = 6371.0
-		# Convert latitude and longitude from degrees to radians
-		lat1_rad = math.radians(lat1)
-		lon1_rad = math.radians(lon1)
-		lat2_rad = math.radians(lat2)
-		lon2_rad = math.radians(lon2)
+	# Radius of the Earth in kilometers
+	R = 6371.0
+	# Convert latitude and longitude from degrees to radians
+	lat1_rad = math.radians(lat1)
+	lon1_rad = math.radians(lon1)
+	lat2_rad = math.radians(lat2)
+	lon2_rad = math.radians(lon2)
 
-		# Differences in coordinates
-		dlat = lat2_rad - lat1_rad
-		dlon = lon2_rad - lon1_rad
+	# Differences in coordinates
+	dlat = lat2_rad - lat1_rad
+	dlon = lon2_rad - lon1_rad
 
-		# Haversine formula
-		a = math.pow(math.sin(dlat / 2), 2) + math.cos(lat1_rad) * math.cos(lat2_rad) * math.pow(math.sin(dlon / 2), 2)
-		c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+	# Haversine formula
+	a = math.pow(math.sin(dlat / 2), 2) + math.cos(lat1_rad) * math.cos(lat2_rad) * math.pow(math.sin(dlon / 2), 2)
+	c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
 
-		# Distance in kilometers
-		distance_km = R * c
-		# Convert distance to meters
-		distance_m = distance_km * 1000
-		return distance_m
+	# Distance in kilometers
+	distance_km = R * c
+	# Convert distance to meters
+	distance_m = distance_km * 1000
+	return distance_m
 
 def formatted_time_return(puttime):
 	# if (type(puttime) != type(datetime.datetime)):
-	# 	raise TypeError(f"{puttime} attribute must be set to an instance of datetime.datetime")
+	# raise TypeError(f"{puttime} attribute must be set to an instance of datetime.datetime")
 	formatted_month = ('00' + str(puttime.month))[-2:]
 	formatted_date = ('00' + str(puttime.day))[-2:]
 	formatted_hour = ('00' + str(puttime.hour - 7))[-2:]
@@ -104,11 +104,11 @@ def start_session(running_sessions, weight):
 	token_url = "https://api2.arduino.cc/iot/v1/clients/token"
 	oauth = OAuth2Session(client=oauth_client)
 	token = oauth.fetch_token(
-			token_url=token_url,
-			client_id="967VT2YXvzhTjgPr7YqJnwpx4gv9LPj3",
-			client_secret="IzJKMUUnl09D1aTZQoYWxu31PpmKH1JLPPWVMBliDCet0aClF0MWXF5hGnuZH5c7",
-			include_client_id=True,
-			audience="https://api2.arduino.cc/iot",
+		token_url=token_url,
+		client_id="967VT2YXvzhTjgPr7YqJnwpx4gv9LPj3",
+		client_secret="IzJKMUUnl09D1aTZQoYWxu31PpmKH1JLPPWVMBliDCet0aClF0MWXF5hGnuZH5c7",
+		include_client_id=True,
+		audience="https://api2.arduino.cc/iot",
 	)
 
 	# store access token in access_token variable
@@ -186,7 +186,7 @@ def start_session(running_sessions, weight):
 				coordinatestamps.append({'timestamp':resp._value_updated_at, 'lat':resp._last_value['lat'], 'lon':resp._last_value['lon']})
 				if (len(coordinatestamps) > 1):
 					distance = haversine(coordinatestamps[len(coordinatestamps)-2]['lat'], coordinatestamps[len(
-							coordinatestamps)-2]['lon'], coordinatestamps[len(coordinatestamps)-1]['lat'], coordinatestamps[len(coordinatestamps)-1]['lon'])
+						coordinatestamps)-2]['lon'], coordinatestamps[len(coordinatestamps)-1]['lat'], coordinatestamps[len(coordinatestamps)-1]['lon'])
 					delta = (coordinatestamps[len(coordinatestamps)-1]['timestamp'] - coordinatestamps[len(coordinatestamps)-2]['timestamp']).total_seconds()
 					current_velocity = distance / (delta + 0.000001) # to prevent division by 0
 					total_distance += distance
