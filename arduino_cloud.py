@@ -98,7 +98,7 @@ def formatted_time_return(puttime):
 	# print(f"Formatted:\t{formatted_time}")
 	return formatted_time
 
-def start_session(running_sessions, weight):
+def start_session(running_sessions, weight, start_second):
 	# Get your token, don't change client ID and client secret
 	oauth_client = BackendApplicationClient(client_id="967VT2YXvzhTjgPr7YqJnwpx4gv9LPj3")
 	token_url = "https://api2.arduino.cc/iot/v1/clients/token"
@@ -106,7 +106,7 @@ def start_session(running_sessions, weight):
 	token = oauth.fetch_token(
 		token_url=token_url,
 		client_id="967VT2YXvzhTjgPr7YqJnwpx4gv9LPj3",
-		client_secret="IzJKMUUnl09D1aTZQoYWxu31PpmKH1JLPPWVMBliDCet0aClF0MWXF5hGnuZH5c7",
+		client_secret="UsCSVumewz4qFuAgODuBXCkYZLAdOjP3Apj2McKTsjdbIsVavQqZyCEdBYxlIx2A",
 		include_client_id=True,
 		audience="https://api2.arduino.cc/iot",
 	)
@@ -156,6 +156,7 @@ def start_session(running_sessions, weight):
 	previous_time = 0
 
 	# reset prev_record_time
+	print(f"Passed in start_time: {start_second}")
 	now_time = datetime.now(timezone.utc)
 	resp = api.properties_v2_show(thing_id, gps_id)
 	prev_record_time = resp._value_updated_at
@@ -168,7 +169,7 @@ def start_session(running_sessions, weight):
 			print(f"Now:\t{now_time}")
 			buffer_time = now_time + timedelta(minutes=-minutes_ago)
 			# print(f"{minutes_ago} mins ago:\t{buffer_time}")
-			formatted_time = formatted_time_return(buffer_time)
+			formatted_time = formatted_time_return(now_time)
 			print(f"Formatted:\t{formatted_time}")
 
 			# resp = api.properties_v2_list(thing_id)
@@ -212,9 +213,15 @@ def start_session(running_sessions, weight):
 					met = get_met_from_kmph(average_velocity_kmph)
 					# Calories Burned=MET×Weight (kg)×Duration (hours)
 					total_calories = met * weight * total_time / 3600
-					now_time = now_time + timedelta(hours=7)
+					start_second_time = start_second + timedelta(hours=7)
+					print(f"Time to be saved of new session: {start_second_time}")
+
+					# now_time = now_time + timedelta(hours=7)
+					if (total_distance == 0):
+						print("adding a zero session to running_sessions")
+
 					session_dict = {
-						'datetime': now_time.strftime("%d-%m-%Y %H:%M:%S"),
+						'datetime': start_second_time.strftime("%d-%m-%Y %H:%M:%S"),
 						'duration': round(total_time, 1),
 						'distance': round(total_distance, 2),
 						'avg': round(average_velocity, 3),
@@ -222,6 +229,7 @@ def start_session(running_sessions, weight):
 						'calories': round(total_calories, 3)
 					}
 					running_sessions.append(session_dict)
+					print(f"Last item of running_sessions: {running_sessions[-1]}")
 					# session_done.set()
 					return
 

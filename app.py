@@ -10,7 +10,7 @@ from os import access
 import os
 import threading
 from threading import Thread, current_thread, Event
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import time
 import iot_api_client as iot
 from iot_api_client.rest import ApiException
@@ -21,8 +21,7 @@ import arduino_cloud
 
 app = Flask(__name__)
 
-# BUG: if using permanent session, user will be forced to logout after timeout even when still using app
-# FIXME: need to return to login page on next startup if app is shut down unexpectedly
+# DONE: if using permanent session, user will be forced to logout after timeout even when still using app
 # TODO: save database to a remote server
 app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(minutes=30)
 app.config["SESSION_TYPE"] = "filesystem"
@@ -60,25 +59,30 @@ running_sessions = [
 ]
 
 
-def startsess_helper(running_sessions, weight):
-	arduino_cloud.start_session(running_sessions, weight)
+def startsess_helper(running_sessions, weight, start_second):
+	arduino_cloud.start_session(running_sessions, weight, start_second)
 	print("updated running_sessions")
 	# add_sessions_for(session['user_id'], running_sessions=running_sessions)
 	# print("added newest session to database")
 	# print("done with session")
-	can_add_to_db.set()
-	arduino_cloud.session_done.set()
+
+	# this is when running_sessions and db are not synchronized
+	can_add_to_db.set() # must run before session_done.set()
+	print("can_add_to_db now set")
+	arduino_cloud.session_done.set() # must run after everything else here
 	# return redirect("/")
 
 
 def add_sessions_for(user_id, running_sessions):
 	# add last session data to database
+	# print(running_sessions)
 	session_dict = running_sessions[-1]
+	print(f"Last item of running_sessions: {session_dict}")
 	connection = sqlite3.connect("track_me_run.db")
 	cursor = connection.cursor()
 	cursor.execute(
 		"INSERT INTO sessions (user_id, datetime, duration, distance, avg_speed, max_speed, calories) VALUES (?,?,?,?,?,?,?)",
-		(session['user_id'], session_dict['datetime'], session_dict['duration'], session_dict['distance'], session_dict['avg'], session_dict['max'], session_dict['calories']))
+		(user_id, session_dict['datetime'], session_dict['duration'], session_dict['distance'], session_dict['avg'], session_dict['max'], session_dict['calories']))
 	connection.commit()
 	connection.close()
 	return
@@ -101,7 +105,7 @@ def get_sessions_from(user_id) -> list:
 			'calories': sess[7]
 		}
 		temp_running_sessions.append(sess_dict)
-		print(temp_running_sessions[-1])
+		# print(temp_running_sessions[-1])
 
 	connection.close()
 	return temp_running_sessions
@@ -150,15 +154,27 @@ def login_required(f):
 # def hash_password(password):
 #     return hashlib.sha256(password.encode()).hexdigest()
 
+# DONE: if a session is in progress, change button to "back to session"
 @app.route("/")
 @login_required
 def home():
-	global running_sessions
-	running_sessions = get_sessions_from(session['user_id'])
-	return render_template("home.html", sessions=reversed(running_sessions))
+	# only retrieve from db if running_sessions and db are synchronized
+	session_in_progress = not (arduino_cloud.session_done.is_set() and not can_add_to_db.is_set())
+	if (not session_in_progress):
+		global running_sessions
+		running_sessions = get_sessions_from(session['user_id'])
+		print("got running_sessions from db")
+
+	print(f"Last item of running_sessions: {running_sessions[-1]}")
+	if (not can_add_to_db.is_set()):
+		return render_template("home.html", sessions=reversed(running_sessions), session_in_progress=session_in_progress)
+	else:
+		# if hasn't saved to db, don't display the lastest session in running_sessions
+		return render_template("home.html", sessions=reversed(running_sessions[:-1]), session_in_progress=session_in_progress)
+	
+	# TODO: let user delete sessions from the home page
 
 
-# TODO: add a "being logged in" flag to db so that app can know if it was shut down unexpectedly
 @app.route("/login", methods=["POST", "GET"])
 def login():
 	session.clear()
@@ -187,8 +203,9 @@ def login():
 		session["user_id"] = i
 		connection.close()
 
-		# global running_sessions
-		# running_sessions = get_sessions_from(session['user_id'])
+		global running_sessions
+		running_sessions = get_sessions_from(session['user_id'])
+		print("got running_sessions from db")
 		return redirect("/")
 	else:
 		# connection.close()
@@ -224,6 +241,35 @@ def signup():
 	else:
 		# connection.close()
 		return render_template("signup.html")
+
+
+@app.route("/fillprofile", methods=["POST", "GET"])
+@login_required
+def fillprofile():
+	if request.method == "POST":
+		connection = sqlite3.connect("track_me_run.db")
+		cursor = connection.cursor()
+		name = request.form.get("name")
+		weight = float(request.form.get("weight"))
+		height = float(request.form.get("height"))
+		age = int(request.form.get("age"))
+		gender = request.form.get("gender")
+		if gender == "male":
+			bmr = 66 + (6.23 * weight * 2.20462)
+			bmr = bmr + (12.7 * height * 0.393701) - (6.8 * age)
+		else:
+			bmr = 655 + (4.3 * weight * 2.20462)
+			bmr = bmr + (4.7 * height * 0.393701) - (4.7 * age)
+		cursor.execute("UPDATE users SET name = ?, weight = ?, height = ?, age = ?, gender = ?, bmr = ? WHERE id = ?",
+										(name, weight, height, age, gender, bmr, session['user_id'],))
+		connection.commit()
+		connection.close()
+
+		global running_sessions
+		running_sessions = get_sessions_from(
+			session['user_id'])  # should be empty
+		return redirect("/")
+	return render_template("fillprofile.html")
 
 
 @app.route("/changepass", methods=['GET', 'POST'])
@@ -344,10 +390,14 @@ def updateprofile():
 	# connection.close()
 	return render_template("updateprofile.html", name=cur_name, weight=cur_weight, height=cur_height, age=cur_age, gender=cur_gender)
 
-
+# DONE: if a session is in progress, skip setgoal in going to /startsession
 @app.route("/setgoal", methods=['GET', 'POST'])
 @login_required
 def setgoal():
+	# if already in a session, redirect straight to /startsession
+	if not (arduino_cloud.session_done.is_set() and not can_add_to_db.is_set()):
+		return redirect("/startsession")
+	
 	if request.method == "POST":
 		global goal_distance
 		global goal_calories
@@ -387,24 +437,26 @@ def startsess():
 		cur_height = row[5]
 		cur_age = int(row[6])
 		cur_gender = row[7]
-	child_thread = Thread(target=startsess_helper,
-											 args=(running_sessions, cur_weight))
 	connection.close()
-	parent_thread = current_thread()
 
 	first_time = False
-	if (arduino_cloud.session_done.is_set()):
+	parent_thread = current_thread()
+
+	if (arduino_cloud.session_done.is_set() and not can_add_to_db.is_set()):
 		# allow new session to begin
-		global start_second
-		start_second = datetime.now()
-		arduino_cloud.session_done.clear()
+		arduino_cloud.session_done.clear() # must run before everything else here
 		first_time = True
-		child_thread.start()
+		global start_second
+		start_second = datetime.now(timezone.utc)
+		print(f"Session begins at {start_second}----------------------------------------------------------------------")
+		child_thread = Thread(target=startsess_helper,
+												args=(running_sessions, cur_weight, start_second))
+		child_thread.start() # must run after everything else here
 			
 	if (current_thread() == parent_thread):
-		now = datetime.now()
+		now = datetime.now(timezone.utc)
 		elapsed = int((now - start_second).total_seconds())
-		return render_template("startsession.html", start_second=elapsed, first_time=first_time)
+		return render_template("startsession.html", elapsed_time=elapsed, first_time=first_time)
 
 	# print("Session in progress")
 	# arduino_cloud.start_session(running_sessions)
@@ -568,15 +620,15 @@ def startsess():
 @login_required
 def finishsession():
 	if arduino_cloud.session_done.is_set():
-		# connection.close()
 		if (can_add_to_db.is_set()):
-			can_add_to_db.clear()
 			add_sessions_for(session['user_id'], running_sessions=running_sessions)
 			print("added newest session to database")
-		global goal_distance
-		global goal_calories
-		global goal_flag
+			can_add_to_db.clear() # must run after everything else in if
+		# global goal_distance
+		# global goal_calories
+		# global goal_flag
 		if goal_flag:
+			# show the finish message
 			if (int(running_sessions[-1]['distance']) >= int(goal_distance)) and (int(running_sessions[-1]['calories']) >= int(goal_calories)):
 				return render_template("status.html", flag=True)
 			else:
@@ -587,35 +639,6 @@ def finishsession():
 		# connection.close()
 		# render_template("startsession.html")
 		return redirect("/startsession")
-
-
-@app.route("/fillprofile", methods=["POST", "GET"])
-@login_required
-def fillprofile():
-	if request.method == "POST":
-		connection = sqlite3.connect("track_me_run.db")
-		cursor = connection.cursor()
-		name = request.form.get("name")
-		weight = float(request.form.get("weight"))
-		height = float(request.form.get("height"))
-		age = int(request.form.get("age"))
-		gender = request.form.get("gender")
-		if gender == "male":
-			bmr = 66 + (6.23 * weight * 2.20462)
-			bmr = bmr + (12.7 * height * 0.393701) - (6.8 * age)
-		else:
-			bmr = 655 + (4.3 * weight * 2.20462)
-			bmr = bmr + (4.7 * height * 0.393701) - (4.7 * age)
-		cursor.execute("UPDATE users SET name = ?, weight = ?, height = ?, age = ?, gender = ?, bmr = ? WHERE id = ?",
-										(name, weight, height, age, gender, bmr, session['user_id'],))
-		connection.commit()
-		connection.close()
-
-		global running_sessions
-		running_sessions = get_sessions_from(
-			session['user_id'])  # should be empty
-		return redirect("/")
-	return render_template("fillprofile.html")
 
 
 @app.route("/logout")

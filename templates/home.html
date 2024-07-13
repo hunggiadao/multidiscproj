@@ -87,7 +87,7 @@
 </style>
 {% endblock %}
 
-{% block navbar%}
+{% block navbar %}
 <nav>
 	<a class="active" href="{{ url_for('home') }}"><i class="fas fa-home"></i>Home</a>
 	<a href="{{ url_for('viewprofile') }}"><i class="fas fa-user"></i>My Profile</a>
@@ -98,7 +98,11 @@
 {% block content %}
 <form action="{{ url_for('setgoal') }}">
 	<div class="button-container">
+		{% if not session_in_progress %}
 		<button class="astonishing-button">Start New Session!</button>
+		{% else %}
+		<button class="astonishing-button">Back to Session</button>
+		{% endif %}
 	</div>
 </form>
 {% for session in sessions %}
