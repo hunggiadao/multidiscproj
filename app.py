@@ -65,19 +65,24 @@ def startsess_helper(running_sessions, weight, start_second):
 	# add_sessions_for(session['user_id'], running_sessions=running_sessions)
 	# print("added newest session to database")
 	# print("done with session")
-	can_add_to_db.set() # must run right before session_done.set()
+
+	# this is when running_sessions and db are not synchronized
+	can_add_to_db.set() # must run before session_done.set()
+	print("can_add_to_db now set")
 	arduino_cloud.session_done.set() # must run after everything else here
 	# return redirect("/")
 
 
 def add_sessions_for(user_id, running_sessions):
 	# add last session data to database
+	# print(running_sessions)
 	session_dict = running_sessions[-1]
+	print(f"Last item of running_sessions: {session_dict}")
 	connection = sqlite3.connect("track_me_run.db")
 	cursor = connection.cursor()
 	cursor.execute(
 		"INSERT INTO sessions (user_id, datetime, duration, distance, avg_speed, max_speed, calories) VALUES (?,?,?,?,?,?,?)",
-		(session['user_id'], session_dict['datetime'], session_dict['duration'], session_dict['distance'], session_dict['avg'], session_dict['max'], session_dict['calories']))
+		(user_id, session_dict['datetime'], session_dict['duration'], session_dict['distance'], session_dict['avg'], session_dict['max'], session_dict['calories']))
 	connection.commit()
 	connection.close()
 	return
@@ -149,13 +154,25 @@ def login_required(f):
 # def hash_password(password):
 #     return hashlib.sha256(password.encode()).hexdigest()
 
-# TODO: if a session is in progress, change button to "back to session"
+# DONE: if a session is in progress, change button to "back to session"
 @app.route("/")
 @login_required
 def home():
-	global running_sessions
-	running_sessions = get_sessions_from(session['user_id'])
-	return render_template("home.html", sessions=reversed(running_sessions))
+	# only retrieve from db if running_sessions and db are synchronized
+	session_in_progress = not (arduino_cloud.session_done.is_set() and not can_add_to_db.is_set())
+	if (not session_in_progress):
+		global running_sessions
+		running_sessions = get_sessions_from(session['user_id'])
+		print("got running_sessions from db")
+
+	print(f"Last item of running_sessions: {running_sessions[-1]}")
+	if (not can_add_to_db.is_set()):
+		return render_template("home.html", sessions=reversed(running_sessions), session_in_progress=session_in_progress)
+	else:
+		# if hasn't saved to db, don't display the lastest session in running_sessions
+		return render_template("home.html", sessions=reversed(running_sessions[:-1]), session_in_progress=session_in_progress)
+	
+	# TODO: let user delete sessions from the home page
 
 
 @app.route("/login", methods=["POST", "GET"])
@@ -186,8 +203,9 @@ def login():
 		session["user_id"] = i
 		connection.close()
 
-		# global running_sessions
-		# running_sessions = get_sessions_from(session['user_id'])
+		global running_sessions
+		running_sessions = get_sessions_from(session['user_id'])
+		print("got running_sessions from db")
 		return redirect("/")
 	else:
 		# connection.close()
@@ -372,7 +390,7 @@ def updateprofile():
 	# connection.close()
 	return render_template("updateprofile.html", name=cur_name, weight=cur_weight, height=cur_height, age=cur_age, gender=cur_gender)
 
-# TODO: if a session is in progress, skip setgoal in going to /startsession
+# DONE: if a session is in progress, skip setgoal in going to /startsession
 @app.route("/setgoal", methods=['GET', 'POST'])
 @login_required
 def setgoal():
@@ -422,13 +440,13 @@ def startsess():
 	connection.close()
 
 	first_time = False
-	global start_second
 	parent_thread = current_thread()
 
 	if (arduino_cloud.session_done.is_set() and not can_add_to_db.is_set()):
 		# allow new session to begin
 		arduino_cloud.session_done.clear() # must run before everything else here
 		first_time = True
+		global start_second
 		start_second = datetime.now(timezone.utc)
 		print(f"Session begins at {start_second}----------------------------------------------------------------------")
 		child_thread = Thread(target=startsess_helper,
@@ -606,9 +624,9 @@ def finishsession():
 			add_sessions_for(session['user_id'], running_sessions=running_sessions)
 			print("added newest session to database")
 			can_add_to_db.clear() # must run after everything else in if
-		global goal_distance
-		global goal_calories
-		global goal_flag
+		# global goal_distance
+		# global goal_calories
+		# global goal_flag
 		if goal_flag:
 			# show the finish message
 			if (int(running_sessions[-1]['distance']) >= int(goal_distance)) and (int(running_sessions[-1]['calories']) >= int(goal_calories)):

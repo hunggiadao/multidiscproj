@@ -156,6 +156,7 @@ def start_session(running_sessions, weight, start_second):
 	previous_time = 0
 
 	# reset prev_record_time
+	print(f"Passed in start_time: {start_second}")
 	now_time = datetime.now(timezone.utc)
 	resp = api.properties_v2_show(thing_id, gps_id)
 	prev_record_time = resp._value_updated_at
@@ -213,6 +214,8 @@ def start_session(running_sessions, weight, start_second):
 					# Calories Burned=MET×Weight (kg)×Duration (hours)
 					total_calories = met * weight * total_time / 3600
 					start_second_time = start_second + timedelta(hours=7)
+					print(f"Time to be saved of new session: {start_second_time}")
+
 					# now_time = now_time + timedelta(hours=7)
 					if (total_distance == 0):
 						print("adding a zero session to running_sessions")
@@ -226,6 +229,7 @@ def start_session(running_sessions, weight, start_second):
 						'calories': round(total_calories, 3)
 					}
 					running_sessions.append(session_dict)
+					print(f"Last item of running_sessions: {running_sessions[-1]}")
 					# session_done.set()
 					return
 
